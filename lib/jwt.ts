@@ -27,10 +27,16 @@ export function signJwt(
 ): string {
   try {
     const secret = getJwtSecret()
-    // Fix TypeScript error: ensure expiresIn is properly typed as string
+    // Fix TypeScript error: ensure expiresIn is properly typed
     const envExpiresIn = process.env.JWT_EXPIRES_IN
-    const expiresIn: string = envExpiresIn || options.expiresIn as string || '7d'
-    const signOptions: SignOptions = { ...options, expiresIn }
+    const defaultExpiresIn = options.expiresIn || '7d'
+    const expiresIn = envExpiresIn || defaultExpiresIn
+    
+    const signOptions: SignOptions = { 
+      ...options, 
+      expiresIn 
+    }
+    
     return jwt.sign(payload, secret, signOptions)
   } catch (error) {
     console.error('JWT signing error:', error)
