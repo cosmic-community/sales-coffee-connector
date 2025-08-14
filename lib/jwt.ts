@@ -27,10 +27,12 @@ export function signJwt(
 ): string {
   try {
     const secret = getJwtSecret()
-    // Fix TypeScript error: ensure expiresIn is properly typed
+    // Fix TypeScript error: properly type the expiresIn value
     const envExpiresIn = process.env.JWT_EXPIRES_IN
     const defaultExpiresIn = options.expiresIn || '7d'
-    const expiresIn = envExpiresIn || defaultExpiresIn
+    
+    // Ensure expiresIn is properly typed - use default if env var is undefined
+    const expiresIn: string | number | undefined = envExpiresIn || defaultExpiresIn
     
     const signOptions: SignOptions = { 
       ...options, 
