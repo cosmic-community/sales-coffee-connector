@@ -1,6 +1,6 @@
 import { createBucketClient } from '@cosmicjs/sdk'
 import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+import jwt, { SignOptions } from 'jsonwebtoken'
 import { SalesExecutive } from '@/types'
 
 // Create Cosmic client with write permissions for server-side auth operations
@@ -11,9 +11,29 @@ const cosmic = createBucketClient({
   apiEnvironment: 'staging'
 })
 
-// JWT secret from environment variables
-const JWT_SECRET = process.env.JWT_SECRET as string
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
+// JWT helper functions
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET is not set');
+  }
+  return secret;
+}
+
+function signAccessToken(
+  payload: object,
+  opts: SignOptions = { expiresIn: '7d' }
+): string {
+  const secret = getJwtSecret();
+  // Correct overload: (payload, secret, options) -> string
+  return jwt.sign(payload, secret, opts);
+}
+
+function verifyAccessToken<T extends object = any>(token: string): T {
+  const secret = getJwtSecret();
+  // Synchronous verify without callback for clear typing
+  return jwt.verify(token, secret) as T;
+}
 
 export interface AuthUser {
   id: string
@@ -176,12 +196,8 @@ export class CosmicAuth {
     }
   }
 
-  // Generate JWT token - Fixed the type error by ensuring proper options structure
+  // Generate JWT token - Fixed using the helper function
   static generateToken(user: AuthUser): string {
-    if (!JWT_SECRET) {
-      throw new Error('JWT_SECRET environment variable is required')
-    }
-
     const payload = {
       id: user.id,
       uid: user.uid,
@@ -189,23 +205,14 @@ export class CosmicAuth {
       firstName: user.firstName,
       lastName: user.lastName
     }
-
-    // Fix: Ensure expiresIn is properly typed as string
-    const expiresIn: string = typeof JWT_EXPIRES_IN === 'string' ? JWT_EXPIRES_IN : '7d'
     
-    return jwt.sign(payload, JWT_SECRET, { 
-      expiresIn: expiresIn
-    })
+    return signAccessToken(payload, { expiresIn: '7d' })
   }
 
-  // Verify JWT token
+  // Verify JWT token - Fixed using the helper function
   static verifyToken(token: string): AuthUser | null {
     try {
-      if (!JWT_SECRET) {
-        throw new Error('JWT_SECRET environment variable is required')
-      }
-
-      const decoded = jwt.verify(token, JWT_SECRET) as any
+      const decoded = verifyAccessToken<AuthUser>(token)
       return {
         id: decoded.id,
         uid: decoded.uid || decoded.id, // Fallback to id if uid not present
