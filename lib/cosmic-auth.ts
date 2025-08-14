@@ -25,19 +25,17 @@ function signAccessToken(
   opts: SignOptions = { expiresIn: '7d' }
 ): string {
   const secret = getJwtSecret();
-  // Correct overload: (payload, secret, options) -> string
   return jwt.sign(payload, secret, opts);
 }
 
 function verifyAccessToken<T extends object = any>(token: string): T {
   const secret = getJwtSecret();
-  // Synchronous verify without callback for clear typing
   return jwt.verify(token, secret) as T;
 }
 
 export interface AuthUser {
   id: string
-  uid: string // Added uid property for compatibility
+  uid: string
   email: string
   firstName: string
   lastName: string
@@ -86,11 +84,17 @@ export class CosmicAuth {
           last_name: lastName,
           email: email,
           password_hash: hashedPassword,
-          account_status: 'active',
+          account_status: 'active', // Set to active by default for now
           profile_completed: false,
           willing_to_mentor: false,
           seeking_mentorship: false,
-          max_meetings_per_week: '2' // default value
+          max_meetings_per_week: '2',
+          years_in_sales: 0,
+          annual_quota: 0,
+          company_name: '',
+          job_title: '',
+          timezone: '',
+          company_size: ''
         }
       }
 
@@ -99,7 +103,7 @@ export class CosmicAuth {
       // Create auth response
       const user: AuthUser = {
         id: authUserId,
-        uid: authUserId, // Add uid as alias for id
+        uid: authUserId,
         email: email,
         firstName: firstName,
         lastName: lastName
@@ -110,6 +114,7 @@ export class CosmicAuth {
       return { user, token }
 
     } catch (error: any) {
+      console.error('Signup error:', error)
       throw new Error(error.message || 'Failed to create user')
     }
   }
@@ -123,18 +128,31 @@ export class CosmicAuth {
         throw new Error('Invalid email or password')
       }
 
-      // Verify password
-      const isPasswordValid = await bcrypt.compare(
-        password, 
-        cosmicUser.metadata.password_hash || ''
-      )
+      // Debug logging
+      console.log('Found user:', {
+        id: cosmicUser.id,
+        email: cosmicUser.metadata?.email,
+        hasPassword: !!cosmicUser.metadata?.password_hash,
+        accountStatus: cosmicUser.metadata?.account_status
+      })
 
+      // Verify password
+      const passwordHash = cosmicUser.metadata?.password_hash
+      if (!passwordHash) {
+        throw new Error('User account is not properly configured')
+      }
+
+      const isPasswordValid = await bcrypt.compare(password, passwordHash)
       if (!isPasswordValid) {
         throw new Error('Invalid email or password')
       }
 
-      // Check account status
-      if (cosmicUser.metadata.account_status !== 'active') {
+      // Check account status - handle both string values and object format
+      const accountStatus = typeof cosmicUser.metadata.account_status === 'object' 
+        ? cosmicUser.metadata.account_status?.value || cosmicUser.metadata.account_status?.key
+        : cosmicUser.metadata.account_status
+
+      if (accountStatus !== 'active' && accountStatus !== 'Active') {
         throw new Error('Account is not active. Please contact support.')
       }
 
@@ -142,7 +160,7 @@ export class CosmicAuth {
       const authUserId = cosmicUser.metadata.auth_user_id || cosmicUser.id
       const user: AuthUser = {
         id: authUserId,
-        uid: authUserId, // Add uid as alias for id
+        uid: authUserId,
         email: cosmicUser.metadata.email || email,
         firstName: cosmicUser.metadata.first_name || '',
         lastName: cosmicUser.metadata.last_name || ''
@@ -153,6 +171,7 @@ export class CosmicAuth {
       return { user, token }
 
     } catch (error: any) {
+      console.error('Sign in error:', error)
       throw new Error(error.message || 'Failed to sign in')
     }
   }
@@ -166,12 +185,14 @@ export class CosmicAuth {
           'metadata.email': email
         })
         .props(['id', 'title', 'metadata'])
+        .depth(1)
 
       return response.objects[0] as SalesExecutive || null
     } catch (error) {
       if (hasStatus(error) && error.status === 404) {
         return null
       }
+      console.error('Get user by email error:', error)
       throw new Error('Failed to fetch user')
     }
   }
@@ -196,7 +217,7 @@ export class CosmicAuth {
     }
   }
 
-  // Generate JWT token - Fixed using the helper function
+  // Generate JWT token
   static generateToken(user: AuthUser): string {
     const payload = {
       id: user.id,
@@ -209,18 +230,19 @@ export class CosmicAuth {
     return signAccessToken(payload, { expiresIn: '7d' })
   }
 
-  // Verify JWT token - Fixed using the helper function
+  // Verify JWT token
   static verifyToken(token: string): AuthUser | null {
     try {
       const decoded = verifyAccessToken<AuthUser>(token)
       return {
         id: decoded.id,
-        uid: decoded.uid || decoded.id, // Fallback to id if uid not present
+        uid: decoded.uid || decoded.id,
         email: decoded.email,
         firstName: decoded.firstName,
         lastName: decoded.lastName
       }
     } catch (error) {
+      console.error('Token verification error:', error)
       return null
     }
   }

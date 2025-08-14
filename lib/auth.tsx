@@ -3,20 +3,21 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { AuthUser } from '@/lib/cosmic-auth'
 
-interface AuthContextType {
+export interface AuthContextType {
   user: AuthUser | null
   loading: boolean
+  login: (email: string, password: string) => Promise<AuthUser>
   signIn: (email: string, password: string) => Promise<AuthUser>
   signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<AuthUser>
-  signInWithGoogle: () => Promise<AuthUser> // Added missing method
+  signInWithGoogle: () => Promise<AuthUser>
   signOut: () => Promise<void>
   logout: () => Promise<void>
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>
   isAuthenticated: boolean
-  isFirebaseAvailable: boolean // Keep for compatibility
+  isFirebaseAvailable: boolean
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function useAuth() {
   const context = useContext(AuthContext)
@@ -98,6 +99,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
+  // Alias for signIn to support both naming conventions
+  const login = signIn
+
   const signUp = async (
     email: string, 
     password: string, 
@@ -135,12 +139,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
-  // Added Google sign-in method
   const signInWithGoogle = async (): Promise<AuthUser> => {
     try {
       // For now, throw an error as Google OAuth is not implemented
       // This can be implemented later with proper OAuth flow
-      throw new Error('Google sign-in is not yet implemented')
+      throw new Error('Google sign-in is coming soon! Please use email login for now.')
     } catch (error: any) {
       throw new Error(error.message || 'Failed to sign in with Google')
     }
@@ -201,9 +204,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value: AuthContextType = {
     user,
     loading,
+    login,
     signIn,
     signUp,
-    signInWithGoogle, // Added to context value
+    signInWithGoogle,
     signOut,
     logout,
     updatePassword,
