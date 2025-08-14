@@ -4,6 +4,8 @@ import { getSalesExecutiveByAuthId } from '@/lib/cosmic'
 import { cosmic } from '@/lib/cosmic'
 import { validateProfileUpdate } from '@/utils/validation'
 
+export const dynamic = 'force-dynamic'
+
 export async function PUT(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization')
