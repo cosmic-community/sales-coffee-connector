@@ -54,8 +54,8 @@ function OnboardingContent() {
         getIndustries()
       ])
       
-      setSkills(skillsData as Skill[])
-      setIndustries(industriesData as Industry[])
+      setSkills(skillsData)
+      setIndustries(industriesData)
     } catch (error) {
       console.error('Error loading onboarding data:', error)
     } finally {

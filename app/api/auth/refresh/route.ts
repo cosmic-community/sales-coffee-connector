@@ -30,7 +30,8 @@ export async function POST(request: NextRequest) {
     // Check if user still exists and is active
     const profile = await getSalesExecutiveByAuthId(user.id)
     
-    if (!profile || profile.metadata?.account_status !== 'active') {
+    // Fix TS2367: Properly check account status with type safety
+    if (!profile || profile.metadata?.account_status?.value !== 'Active') {
       return NextResponse.json(
         { error: 'User account is not active' },
         { status: 401 }
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
       token: newToken 
     }, { status: 200 })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Token refresh error:', error)
     return NextResponse.json(
       { error: 'Failed to refresh token' },

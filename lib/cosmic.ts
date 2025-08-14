@@ -1,5 +1,5 @@
 import { createBucketClient } from '@cosmicjs/sdk'
-import { SalesExecutive, CosmicObject } from '@/types'
+import { SalesExecutive, CosmicObject, Skill, Industry, MatchingSession } from '@/types'
 
 const cosmic = createBucketClient({
   bucketSlug: process.env.COSMIC_BUCKET_SLUG as string,
@@ -24,8 +24,9 @@ export async function getSalesExecutives(): Promise<SalesExecutive[]> {
       .depth(1)
     
     return objects.map(transformSalesExecutive)
-  } catch (error) {
-    if (error.status === 404) {
+  } catch (error: unknown) {
+    const cosmicError = error as any
+    if (cosmicError.status === 404) {
       return []
     }
     throw error
@@ -40,8 +41,9 @@ export async function getSalesExecutiveByEmail(email: string): Promise<SalesExec
       .depth(1)
     
     return transformSalesExecutive(object)
-  } catch (error) {
-    if (error.status === 404) {
+  } catch (error: unknown) {
+    const cosmicError = error as any
+    if (cosmicError.status === 404) {
       return null
     }
     throw error
@@ -56,9 +58,67 @@ export async function getSalesExecutiveByAuthId(authUserId: string): Promise<Sal
       .depth(1)
     
     return transformSalesExecutive(object)
-  } catch (error) {
-    if (error.status === 404) {
+  } catch (error: unknown) {
+    const cosmicError = error as any
+    if (cosmicError.status === 404) {
       return null
+    }
+    throw error
+  }
+}
+
+export async function getSkills(): Promise<Skill[]> {
+  try {
+    const { objects } = await cosmic.objects
+      .find({ type: 'skills' })
+      .props(['id', 'title', 'slug', 'metadata'])
+      .depth(1)
+    
+    return objects as Skill[]
+  } catch (error: unknown) {
+    const cosmicError = error as any
+    if (cosmicError.status === 404) {
+      return []
+    }
+    throw error
+  }
+}
+
+export async function getIndustries(): Promise<Industry[]> {
+  try {
+    const { objects } = await cosmic.objects
+      .find({ type: 'industries' })
+      .props(['id', 'title', 'slug', 'metadata'])
+      .depth(1)
+    
+    return objects as Industry[]
+  } catch (error: unknown) {
+    const cosmicError = error as any
+    if (cosmicError.status === 404) {
+      return []
+    }
+    throw error
+  }
+}
+
+export async function getUserSessions(userId: string): Promise<MatchingSession[]> {
+  try {
+    const { objects } = await cosmic.objects
+      .find({ 
+        type: 'matching-sessions',
+        $or: [
+          { 'metadata.participant_1': userId },
+          { 'metadata.participant_2': userId }
+        ]
+      })
+      .props(['id', 'title', 'slug', 'metadata'])
+      .depth(1)
+    
+    return objects as MatchingSession[]
+  } catch (error: unknown) {
+    const cosmicError = error as any
+    if (cosmicError.status === 404) {
+      return []
     }
     throw error
   }

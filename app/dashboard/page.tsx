@@ -64,28 +64,44 @@ function DashboardContent() {
       if (userProfile) {
         // Load user sessions
         const userSessions = await getUserSessions(userProfile.id)
-        setSessions(userSessions as MatchingSession[])
+        setSessions(userSessions)
 
         // Calculate stats
         const completedSessions = userSessions.filter(
-          (session: MatchingSession) => session.metadata?.session_status === 'completed'
+          (session) => session.metadata?.session_status?.value === 'Completed' || 
+                      session.metadata?.session_status === 'completed'
         )
         
         const upcomingSessions = userSessions.filter(
-          (session: MatchingSession) => session.metadata?.session_status === 'confirmed'
+          (session) => session.metadata?.session_status?.value === 'Confirmed' || 
+                      session.metadata?.session_status === 'confirmed'
         )
 
         // Calculate average rating
         let totalRating = 0
         let ratingCount = 0
-        userSessions.forEach((session: MatchingSession) => {
+        userSessions.forEach((session) => {
           if (session.metadata?.session_rating_p1) {
-            totalRating += parseInt(session.metadata.session_rating_p1)
-            ratingCount++
+            const rating1 = typeof session.metadata.session_rating_p1 === 'string' 
+              ? parseInt(session.metadata.session_rating_p1) 
+              : session.metadata.session_rating_p1.key 
+                ? parseInt(session.metadata.session_rating_p1.key) 
+                : 0
+            if (!isNaN(rating1)) {
+              totalRating += rating1
+              ratingCount++
+            }
           }
           if (session.metadata?.session_rating_p2) {
-            totalRating += parseInt(session.metadata.session_rating_p2)
-            ratingCount++
+            const rating2 = typeof session.metadata.session_rating_p2 === 'string' 
+              ? parseInt(session.metadata.session_rating_p2) 
+              : session.metadata.session_rating_p2.key 
+                ? parseInt(session.metadata.session_rating_p2.key) 
+                : 0
+            if (!isNaN(rating2)) {
+              totalRating += rating2
+              ratingCount++
+            }
           }
         })
 
@@ -121,7 +137,8 @@ function DashboardContent() {
     
     let completedFields = 0
     requiredFields.forEach(field => {
-      if (profile.metadata?.[field as keyof typeof profile.metadata]) {
+      const value = profile.metadata?.[field as keyof typeof profile.metadata]
+      if (value && value !== '' && value !== 0) {
         completedFields++
       }
     })
@@ -334,13 +351,13 @@ function DashboardContent() {
                   </div>
                   <div className="flex items-center space-x-2">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      session.metadata?.session_status === 'completed' 
+                      session.metadata?.session_status?.value === 'Completed' || session.metadata?.session_status === 'completed'
                         ? 'bg-success-100 text-success-700'
-                        : session.metadata?.session_status === 'confirmed'
+                        : session.metadata?.session_status?.value === 'Confirmed' || session.metadata?.session_status === 'confirmed'
                         ? 'bg-primary-100 text-primary-700'
                         : 'bg-warning-100 text-warning-700'
                     }`}>
-                      {session.metadata?.session_status || 'Pending'}
+                      {session.metadata?.session_status?.value || session.metadata?.session_status || 'Pending'}
                     </span>
                   </div>
                 </div>
