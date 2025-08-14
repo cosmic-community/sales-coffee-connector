@@ -66,6 +66,8 @@ export default function OnboardingPage() {
   }
 
   const handleComplete = async () => {
+    if (!user) return
+
     try {
       // Create user profile in Cosmic
       const response = await fetch('/api/profile', {
@@ -74,8 +76,8 @@ export default function OnboardingPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          authUserId: user?.uid,
-          email: user?.email,
+          authUserId: user.uid,
+          email: user.email,
           ...formData,
           profile_completed: true,
           account_status: 'active'
@@ -111,7 +113,11 @@ export default function OnboardingPage() {
     { number: 5, title: 'Availability', component: OnboardingStep5 },
   ]
 
-  const CurrentStepComponent = steps[currentStep - 1].component
+  const CurrentStepComponent = steps[currentStep - 1]?.component
+
+  if (!CurrentStepComponent) {
+    return <div>Invalid step</div>
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -156,7 +162,7 @@ export default function OnboardingPage() {
           </div>
           <div className="text-center">
             <h2 className="text-xl font-semibold text-gray-900 mb-1">
-              Step {currentStep}: {steps[currentStep - 1].title}
+              Step {currentStep}: {steps[currentStep - 1]?.title}
             </h2>
             <p className="text-gray-600">
               {currentStep} of {steps.length} steps completed

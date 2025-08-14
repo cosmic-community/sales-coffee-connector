@@ -54,17 +54,17 @@ export default function DashboardPage() {
 
         // Calculate stats
         const completedSessions = userSessions.filter(
-          session => session.metadata?.session_status === 'completed'
+          (session: MatchingSession) => session.metadata?.session_status === 'completed'
         )
         
         const upcomingSessions = userSessions.filter(
-          session => session.metadata?.session_status === 'confirmed'
+          (session: MatchingSession) => session.metadata?.session_status === 'confirmed'
         )
 
         // Calculate average rating
         let totalRating = 0
         let ratingCount = 0
-        userSessions.forEach(session => {
+        userSessions.forEach((session: MatchingSession) => {
           if (session.metadata?.session_rating_p1) {
             totalRating += parseInt(session.metadata.session_rating_p1)
             ratingCount++

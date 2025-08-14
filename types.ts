@@ -194,6 +194,6 @@ export function isMatchingSession(obj: CosmicObject): obj is MatchingSession {
   return obj.type === 'matching-sessions';
 }
 
-// Utility types
-export type OptionalMetadata<T> = Partial<T['metadata']>;
+// Utility types  
+export type OptionalMetadata<T extends CosmicObject> = Partial<T['metadata']>;
 export type CreateSalesExecutiveData = Omit<SalesExecutive, 'id' | 'created_at' | 'modified_at'>;
