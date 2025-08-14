@@ -3,6 +3,9 @@
 import { Suspense } from 'react'
 import LoginForm from '@/components/LoginForm'
 
+// Force dynamic rendering to prevent SSR issues
+export const dynamic = 'force-dynamic'
+
 // Loading component for Suspense fallback
 function LoginLoading() {
   return (

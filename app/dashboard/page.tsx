@@ -17,6 +17,9 @@ import {
 import { getSalesExecutiveByAuthId, getUserSessions } from '@/lib/cosmic'
 import { SalesExecutive, MatchingSession, DashboardStats } from '@/types'
 
+// Force dynamic rendering to prevent SSR issues
+export const dynamic = 'force-dynamic'
+
 export default function DashboardPage() {
   const { user, logout, loading: authLoading } = useAuth()
   const router = useRouter()

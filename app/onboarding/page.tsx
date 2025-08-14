@@ -12,6 +12,9 @@ import OnboardingStep3 from '@/components/OnboardingStep3'
 import OnboardingStep4 from '@/components/OnboardingStep4'
 import OnboardingStep5 from '@/components/OnboardingStep5'
 
+// Force dynamic rendering to prevent SSR issues
+export const dynamic = 'force-dynamic'
+
 export default function OnboardingPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
