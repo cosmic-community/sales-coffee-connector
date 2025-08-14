@@ -17,10 +17,11 @@ let auth: Auth
 
 if (typeof window !== 'undefined') {
   // Client-side initialization
-  if (!getApps().length) {
+  const existingApps = getApps()
+  if (existingApps.length === 0) {
     app = initializeApp(firebaseConfig)
   } else {
-    app = getApps()[0]
+    app = existingApps[0] as FirebaseApp // Safe assertion since we know length > 0
   }
   auth = getAuth(app)
 } else {
