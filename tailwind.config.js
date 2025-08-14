@@ -7,6 +7,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        border: '#E5E7EB', // Gray-300 for border color
         primary: {
           DEFAULT: '#0066CC',
           50: '#E6F2FF',
