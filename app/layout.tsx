@@ -1,13 +1,13 @@
-import { AuthProvider } from '@/lib/auth'
+import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import CosmicBadge from '@/components/CosmicBadge'
 import './globals.css'
+import { AuthProvider } from '@/lib/auth'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Sales Coffee Connector',
-  description: 'Connect with sales professionals for 15-minute virtual coffee chats',
+  description: 'Connect with fellow sales professionals for coffee chats and networking',
 }
 
 export default function RootLayout({
@@ -15,14 +15,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const bucketSlug = process.env.COSMIC_BUCKET_SLUG as string
-
   return (
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
           {children}
-          <CosmicBadge bucketSlug={bucketSlug} />
         </AuthProvider>
       </body>
     </html>

@@ -1,29 +1,42 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { useAuth } from '@/lib/auth'
+import { useAuth } from '@/hooks/useAuth'
 import { Users, Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { validateLoginForm } from '@/utils/validation'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
-  const { signIn, signInWithGoogle } = useAuth()
+  const { login } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  
+  // Get return URL from query params
+  const returnUrl = searchParams.get('returnUrl') || '/dashboard'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    setLoading(true)
 
+    // Validate form
+    const validation = validateLoginForm(email, password)
+    if (!validation.isValid) {
+      setError(validation.error || 'Please check your input')
+      return
+    }
+
+    setLoading(true)
     try {
-      await signIn(email, password)
-      router.push('/dashboard')
+      await login(email, password)
+      router.push(returnUrl)
     } catch (error: any) {
       setError(error.message || 'Failed to sign in')
     } finally {
@@ -33,16 +46,8 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     setLoading(true)
-    setError('')
-    
-    try {
-      await signInWithGoogle()
-      router.push('/dashboard')
-    } catch (error: any) {
-      setError(error.message || 'Failed to sign in with Google')
-    } finally {
-      setLoading(false)
-    }
+    setError('Google sign-in is coming soon! Please use email login for now.')
+    setLoading(false)
   }
 
   return (
@@ -82,6 +87,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="input-field pl-10"
                   placeholder="your@email.com"
+                  autoComplete="email"
                 />
               </div>
             </div>
@@ -100,6 +106,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="input-field pl-10 pr-10"
                   placeholder="••••••••"
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
@@ -117,6 +124,8 @@ export default function LoginPage() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">

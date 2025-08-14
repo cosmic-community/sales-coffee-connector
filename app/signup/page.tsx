@@ -3,41 +3,44 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useAuth } from '@/lib/auth'
-import { Users, Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { Users, Mail, Lock, Eye, EyeOff, User } from 'lucide-react'
+import { validateSignupForm } from '@/utils/validation'
+import { checkPasswordStrength, getPasswordStrengthText, getPasswordStrengthColor } from '@/utils/password'
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
-  const { signUp, signInWithGoogle } = useAuth()
+  const { signup } = useAuth()
   const router = useRouter()
+
+  // Password strength check
+  const passwordStrength = checkPasswordStrength(password)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
-      return
-    }
-
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters')
+    // Validate form
+    const validation = validateSignupForm(email, password, confirmPassword, firstName, lastName)
+    if (!validation.isValid) {
+      setError(validation.error || 'Please check your input')
       return
     }
 
     setLoading(true)
     try {
-      // Fixed: signUp function call with proper parameters - added empty strings for first and last name
-      const result = await signUp(email, password, '', '')
-      if (result) {
-        router.push('/verify-email')
-      }
+      await signup(email, password, firstName, lastName)
+      // Redirect to onboarding to complete profile
+      router.push('/onboarding')
     } catch (error: any) {
       setError(error.message || 'Failed to create account')
     } finally {
@@ -47,18 +50,8 @@ export default function SignUpPage() {
 
   const handleGoogleSignUp = async () => {
     setLoading(true)
-    setError('')
-    
-    try {
-      const result = await signInWithGoogle()
-      if (result) {
-        router.push('/onboarding')
-      }
-    } catch (error: any) {
-      setError(error.message || 'Failed to sign up with Google')
-    } finally {
-      setLoading(false)
-    }
+    setError('Google sign-up is coming soon! Please use email signup for now.')
+    setLoading(false)
   }
 
   return (
@@ -84,6 +77,45 @@ export default function SignUpPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Name Fields */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                  First Name
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    id="firstName"
+                    type="text"
+                    required
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="input-field pl-10"
+                    placeholder="John"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Last Name
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    id="lastName"
+                    type="text"
+                    required
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="input-field pl-10"
+                    placeholder="Doe"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email Address
@@ -125,6 +157,30 @@ export default function SignUpPage() {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              {password && (
+                <div className="mt-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Password strength:</span>
+                    <span className={`font-medium ${getPasswordStrengthColor(passwordStrength.score)}`}>
+                      {getPasswordStrengthText(passwordStrength.score)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-1 mt-1">
+                    <div
+                      className={`h-1 rounded-full transition-all duration-300 ${
+                        passwordStrength.score === 0 || passwordStrength.score === 1
+                          ? 'bg-red-500'
+                          : passwordStrength.score === 2
+                          ? 'bg-orange-500'
+                          : passwordStrength.score === 3
+                          ? 'bg-yellow-500'
+                          : 'bg-green-500'
+                      }`}
+                      style={{ width: `${(passwordStrength.score / 4) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>
@@ -135,13 +191,20 @@ export default function SignUpPage() {
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   id="confirmPassword"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showConfirmPassword ? 'text' : 'password'}
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="input-field pl-10"
+                  className="input-field pl-10 pr-10"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
