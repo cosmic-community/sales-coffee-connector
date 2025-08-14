@@ -1,19 +1,7 @@
 'use client'
 
-import { AuthProvider as AuthProviderComponent } from '@/lib/auth'
-import { ReactNode } from 'react'
+import { AuthProvider } from '@/lib/auth'
 
-interface AuthProviderProps {
-  children: ReactNode
+export default function AuthProviderWrapper({ children }: { children: React.ReactNode }) {
+  return <AuthProvider>{children}</AuthProvider>
 }
-
-// Default export for the component
-export default function AuthProvider({ children }: AuthProviderProps) {
-  return <AuthProviderComponent>{children}</AuthProviderComponent>
-}
-
-// Named export for backward compatibility
-export { AuthProvider } from '@/lib/auth'
-
-// Also export the hook for convenience
-export { useAuth } from '@/lib/auth'

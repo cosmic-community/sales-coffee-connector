@@ -1,37 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-export const dynamic = 'force-dynamic'
+import { cookies } from 'next/headers'
 
 export async function POST(request: NextRequest) {
   try {
-    const response = NextResponse.json({ message: 'Logged out successfully' }, { status: 200 })
+    const response = NextResponse.json({ message: 'Logout successful' })
     
-    // Clear both secure and non-secure cookies
-    const isProduction = process.env.NODE_ENV === 'production'
-    
-    if (isProduction) {
-      response.cookies.set('__Secure-auth-token', '', {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        maxAge: 0,
-        path: '/'
-      })
-    }
-    
-    response.cookies.set('auth-token', '', {
+    // Clear the authentication cookie
+    const cookieStore = await cookies()
+    cookieStore.set('auth-token', '', {
       httpOnly: true,
-      secure: isProduction,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 0,
-      path: '/'
+      path: '/',
     })
 
     return response
+
   } catch (error: any) {
     console.error('Logout error:', error)
+    
     return NextResponse.json(
-      { error: 'Failed to logout' },
+      { error: 'Logout failed' },
       { status: 500 }
     )
   }
