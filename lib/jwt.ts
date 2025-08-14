@@ -28,7 +28,7 @@ export function signJwt(
   try {
     const secret = getJwtSecret()
     // Use environment variable or default, ensuring it's a valid format
-    const expiresIn = process.env.JWT_EXPIRES_IN || '7d'
+    const expiresIn = process.env.JWT_EXPIRES_IN ?? '7d'
     const signOptions: SignOptions = { expiresIn, ...options }
     return jwt.sign(payload, secret, signOptions)
   } catch (error) {
