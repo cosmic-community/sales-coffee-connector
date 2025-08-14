@@ -160,9 +160,10 @@ export interface MatchScore {
   reasons: string[];
 }
 
-// Authentication types - Updated for Cosmic auth
+// Authentication types - Updated for Cosmic auth with uid property
 export interface AuthUser {
   id: string;
+  uid: string; // Added uid property for compatibility
   email: string;
   firstName: string;
   lastName: string;

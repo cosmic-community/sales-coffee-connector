@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean
   signIn: (email: string, password: string) => Promise<AuthUser>
   signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<AuthUser>
+  signInWithGoogle: () => Promise<AuthUser> // Added missing method
   signOut: () => Promise<void>
   logout: () => Promise<void>
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>
@@ -134,6 +135,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
+  // Added Google sign-in method
+  const signInWithGoogle = async (): Promise<AuthUser> => {
+    try {
+      // For now, throw an error as Google OAuth is not implemented
+      // This can be implemented later with proper OAuth flow
+      throw new Error('Google sign-in is not yet implemented')
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to sign in with Google')
+    }
+  }
+
   const signOut = async (): Promise<void> => {
     try {
       const token = localStorage.getItem('auth_token')
@@ -191,6 +203,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     loading,
     signIn,
     signUp,
+    signInWithGoogle, // Added to context value
     signOut,
     logout,
     updatePassword,

@@ -17,6 +17,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
 
 export interface AuthUser {
   id: string
+  uid: string // Added uid property for compatibility
   email: string
   firstName: string
   lastName: string
@@ -78,6 +79,7 @@ export class CosmicAuth {
       // Create auth response
       const user: AuthUser = {
         id: authUserId,
+        uid: authUserId, // Add uid as alias for id
         email: email,
         firstName: firstName,
         lastName: lastName
@@ -117,8 +119,10 @@ export class CosmicAuth {
       }
 
       // Create auth response
+      const authUserId = cosmicUser.metadata.auth_user_id || cosmicUser.id
       const user: AuthUser = {
-        id: cosmicUser.metadata.auth_user_id || cosmicUser.id,
+        id: authUserId,
+        uid: authUserId, // Add uid as alias for id
         email: cosmicUser.metadata.email || email,
         firstName: cosmicUser.metadata.first_name || '',
         lastName: cosmicUser.metadata.last_name || ''
@@ -172,22 +176,21 @@ export class CosmicAuth {
     }
   }
 
-  // Generate JWT token
+  // Generate JWT token - Fixed the signing issue
   static generateToken(user: AuthUser): string {
     if (!JWT_SECRET) {
       throw new Error('JWT_SECRET environment variable is required')
     }
 
-    return jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName
-      },
-      JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
-    )
+    const payload = {
+      id: user.id,
+      uid: user.uid,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName
+    }
+
+    return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN })
   }
 
   // Verify JWT token
@@ -200,6 +203,7 @@ export class CosmicAuth {
       const decoded = jwt.verify(token, JWT_SECRET) as any
       return {
         id: decoded.id,
+        uid: decoded.uid || decoded.id, // Fallback to id if uid not present
         email: decoded.email,
         firstName: decoded.firstName,
         lastName: decoded.lastName
