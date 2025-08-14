@@ -33,8 +33,8 @@ export default function SignUpPage() {
 
     setLoading(true)
     try {
-      // Fixed: signUp function call with proper parameters
-      const result = await signUp(email, password)
+      // Fixed: signUp function call with proper parameters - added empty strings for first and last name
+      const result = await signUp(email, password, '', '')
       if (result) {
         router.push('/verify-email')
       }
