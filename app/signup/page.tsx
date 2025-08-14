@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useAuth } from '@/components/AuthProvider'
+import { useAuth } from '@/hooks/useAuth'
 import { Users, Mail, Lock, Eye, EyeOff, User } from 'lucide-react'
 import { validateSignupForm } from '@/utils/validation'
 import { checkPasswordStrength, getPasswordStrengthText, getPasswordStrengthColor } from '@/utils/password'

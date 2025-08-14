@@ -91,7 +91,12 @@ export default function OnboardingStep4({ data, onDataChange, skills }: Onboardi
             <p className="text-gray-500 text-sm">No skills available. Please add some skills in your CMS.</p>
           ) : (
             ['prospecting', 'discovery', 'presentation', 'negotiation', 'closing', 'management', 'strategy'].map((category) => {
-              const categorySkills = skills.filter(skill => skill.metadata?.category === category)
+              const categorySkills = skills.filter(skill => 
+                skill.metadata?.category && 
+                typeof skill.metadata.category === 'object' && 
+                'key' in skill.metadata.category &&
+                skill.metadata.category.key === category
+              )
               if (categorySkills.length === 0) return null
               
               return (
@@ -114,9 +119,9 @@ export default function OnboardingStep4({ data, onDataChange, skills }: Onboardi
                         <div className="font-medium text-sm">
                           {skill.metadata?.skill_name || skill.title}
                         </div>
-                        {skill.metadata?.experience_level && (
+                        {skill.metadata?.experience_level && typeof skill.metadata.experience_level === 'object' && 'value' in skill.metadata.experience_level && (
                           <div className="text-xs text-gray-500 capitalize">
-                            {skill.metadata.experience_level} level
+                            {skill.metadata.experience_level.value} level
                           </div>
                         )}
                       </button>

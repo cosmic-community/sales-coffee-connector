@@ -10,7 +10,7 @@ export class AuthLogger {
     if (process.env.LOG_AUTH === '1') {
       console.log('🔐 Auth Attempt:', {
         ...attempt,
-        timestamp: new Date().toISOString()
+        timestamp: attempt.timestamp || new Date().toISOString()
       })
     }
   }
@@ -41,6 +41,18 @@ export class AuthLogger {
     if (process.env.LOG_AUTH === '1') {
       console.log(success ? '✅ Token Valid:' : '❌ Token Invalid:', {
         success,
+        userId,
+        timestamp: new Date().toISOString()
+      })
+    }
+  }
+
+  static logMiddleware(path: string, method: string, authenticated: boolean, userId?: string) {
+    if (process.env.LOG_AUTH === '1') {
+      console.log('🔒 Middleware Check:', {
+        path,
+        method,
+        authenticated,
         userId,
         timestamp: new Date().toISOString()
       })

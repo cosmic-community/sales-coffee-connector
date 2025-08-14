@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, Suspense } from 'react'
-import { useAuth } from '@/components/AuthProvider'
+import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import LoginForm from '@/components/LoginForm'
 

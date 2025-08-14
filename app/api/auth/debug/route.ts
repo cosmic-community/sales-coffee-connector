@@ -75,7 +75,8 @@ export async function GET(request: NextRequest) {
     authLogger.logAuthAttempt({
       route: '/api/auth/debug',
       method: 'GET',
-      status: 200
+      email: 'system',
+      timestamp: new Date().toISOString()
     })
 
     return NextResponse.json(debugInfo, { status: 200 })
@@ -86,8 +87,8 @@ export async function GET(request: NextRequest) {
     authLogger.logAuthAttempt({
       route: '/api/auth/debug',
       method: 'GET',
-      status: 500,
-      error: error.message
+      email: 'system',
+      timestamp: new Date().toISOString()
     })
 
     return NextResponse.json(

@@ -88,8 +88,8 @@ export async function middleware(request: NextRequest) {
       authLogger.logAuthAttempt({
         route: pathname,
         method: request.method,
-        status: 302,
-        error: 'Redirecting to login - no auth'
+        email: 'anonymous',
+        timestamp: new Date().toISOString()
       })
       
       return NextResponse.redirect(loginUrl)
@@ -103,9 +103,8 @@ export async function middleware(request: NextRequest) {
       authLogger.logAuthAttempt({
         route: pathname,
         method: request.method,
-        status: 302,
-        userId,
-        error: 'Redirecting to dashboard - already authenticated'
+        email: userId || 'unknown',
+        timestamp: new Date().toISOString()
       })
       
       return NextResponse.redirect(new URL('/dashboard', request.url))
@@ -118,8 +117,8 @@ export async function middleware(request: NextRequest) {
       authLogger.logAuthAttempt({
         route: pathname,
         method: request.method,
-        status: 401,
-        error: 'API route requires authentication'
+        email: 'anonymous',
+        timestamp: new Date().toISOString()
       })
       
       return NextResponse.json(
