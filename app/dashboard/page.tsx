@@ -43,8 +43,8 @@ export default function DashboardPage() {
     try {
       setLoading(true)
       
-      // Load user profile
-      const userProfile = await getSalesExecutiveByAuthId(user.uid)
+      // Load user profile using the auth user ID from our Cosmic auth system
+      const userProfile = await getSalesExecutiveByAuthId(user.id)
       setProfile(userProfile)
 
       if (userProfile) {
@@ -158,6 +158,9 @@ export default function DashboardPage() {
               <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
             </div>
             <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-600">
+                Welcome, {user?.firstName || 'User'}!
+              </span>
               <Link href="/profile" className="text-gray-600 hover:text-gray-900">
                 <Settings className="w-5 h-5" />
               </Link>
@@ -176,7 +179,7 @@ export default function DashboardPage() {
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {profile.metadata?.first_name || 'Sales Professional'}!
+            Welcome back, {profile.metadata?.first_name || user?.firstName}!
           </h2>
           <p className="text-gray-600">Here's what's happening with your networking.</p>
         </div>

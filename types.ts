@@ -18,6 +18,7 @@ export interface SalesExecutive extends CosmicObject {
     first_name?: string;
     last_name?: string;
     email?: string;
+    password_hash?: string; // Added for Cosmic auth
     profile_photo?: {
       url: string;
       imgix_url: string;
@@ -159,13 +160,12 @@ export interface MatchScore {
   reasons: string[];
 }
 
-// Authentication types
+// Authentication types - Updated for Cosmic auth
 export interface AuthUser {
-  uid: string;
+  id: string;
   email: string;
-  displayName?: string;
-  photoURL?: string;
-  emailVerified: boolean;
+  firstName: string;
+  lastName: string;
 }
 
 // Component prop types

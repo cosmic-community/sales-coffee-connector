@@ -6,13 +6,12 @@ import { AuthUser } from '@/lib/cosmic-auth'
 interface AuthContextType {
   user: AuthUser | null
   loading: boolean
-  signIn: (email: string, password: string) => Promise<AuthUser>
-  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<AuthUser>
+  signIn: (email: string, password: string) => Promise<void>
+  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<void>
   signOut: () => Promise<void>
   logout: () => Promise<void>
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>
   isAuthenticated: boolean
-  isFirebaseAvailable: boolean // Keep for compatibility
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -70,7 +69,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
-  const signIn = async (email: string, password: string): Promise<AuthUser> => {
+  const signIn = async (email: string, password: string): Promise<void> => {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -90,8 +89,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Store token in localStorage
       localStorage.setItem('auth_token', token)
       setUser(user)
-      
-      return user
     } catch (error: any) {
       throw new Error(error.message || 'Failed to sign in')
     }
@@ -102,7 +99,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     password: string, 
     firstName: string, 
     lastName: string
-  ): Promise<AuthUser> => {
+  ): Promise<void> => {
     try {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
@@ -127,8 +124,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Store token in localStorage
       localStorage.setItem('auth_token', token)
       setUser(user)
-      
-      return user
     } catch (error: any) {
       throw new Error(error.message || 'Failed to create account')
     }
@@ -194,8 +189,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signOut,
     logout,
     updatePassword,
-    isAuthenticated: !!user,
-    isFirebaseAvailable: true // Always true for our Cosmic auth
+    isAuthenticated: !!user
   }
 
   return (
