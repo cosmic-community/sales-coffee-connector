@@ -119,7 +119,7 @@ export class CosmicAuth {
     }
   }
 
-  // Sign in existing user
+  // Sign in existing user - Fixed to handle active account status properly
   static async signIn(email: string, password: string): Promise<AuthResponse> {
     try {
       // Find user by email
@@ -149,15 +149,32 @@ export class CosmicAuth {
 
       // Check account status - handle both string values and object format
       const accountStatus = cosmicUser.metadata.account_status
-      const statusValue = typeof accountStatus === 'object' && accountStatus !== null 
-        ? (accountStatus as any).value || (accountStatus as any).key
-        : accountStatus
+      let statusValue: string
 
-      if (statusValue !== 'active' && statusValue !== 'Active') {
-        throw new Error('Account is not active. Please contact support.')
+      // Handle different account status formats from Cosmic CMS
+      if (typeof accountStatus === 'string') {
+        statusValue = accountStatus
+      } else if (typeof accountStatus === 'object' && accountStatus !== null) {
+        statusValue = (accountStatus as any).value || (accountStatus as any).key || ''
+      } else {
+        statusValue = ''
       }
 
-      // Create auth response
+      // Normalize status comparison - accept both 'active' and 'Active'
+      const normalizedStatus = statusValue.toLowerCase()
+      if (normalizedStatus !== 'active') {
+        if (normalizedStatus === 'pending') {
+          throw new Error('Your account is pending approval. Please wait for account activation.')
+        } else if (normalizedStatus === 'suspended') {
+          throw new Error('Your account has been suspended. Please contact support.')
+        } else if (normalizedStatus === 'inactive') {
+          throw new Error('Your account is inactive. Please contact support.')
+        } else {
+          throw new Error('Account status not recognized. Please contact support.')
+        }
+      }
+
+      // Create auth response for active users
       const authUserId = cosmicUser.metadata.auth_user_id || cosmicUser.id
       const user: AuthUser = {
         id: authUserId,

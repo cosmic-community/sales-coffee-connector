@@ -18,7 +18,16 @@ export async function POST(request: NextRequest) {
     // Sign in user
     const authResponse = await CosmicAuth.signIn(email, password)
 
-    return NextResponse.json(authResponse, { status: 200 })
+    // Create session cookie for client-side auth state
+    const response = NextResponse.json(authResponse, { status: 200 })
+    response.cookies.set('auth-token', authResponse.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7 // 7 days
+    })
+
+    return response
 
   } catch (error: any) {
     console.error('Login error:', error)
