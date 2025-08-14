@@ -23,11 +23,14 @@ function getJwtSecret(): string {
 // Sign JWT token
 export function signJwt(
   payload: Omit<TokenPayload, 'iat' | 'exp'>, 
-  options: SignOptions = { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+  options: SignOptions = { expiresIn: '7d' }
 ): string {
   try {
     const secret = getJwtSecret()
-    return jwt.sign(payload, secret, options)
+    // Use environment variable or default, ensuring it's a valid format
+    const expiresIn = process.env.JWT_EXPIRES_IN || '7d'
+    const signOptions: SignOptions = { expiresIn, ...options }
+    return jwt.sign(payload, secret, signOptions)
   } catch (error) {
     console.error('JWT signing error:', error)
     throw new Error('Failed to sign JWT token')
