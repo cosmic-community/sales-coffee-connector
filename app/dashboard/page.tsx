@@ -15,7 +15,7 @@ import {
   LogOut
 } from 'lucide-react'
 import { getSalesExecutiveByAuthId, getUserSessions } from '@/lib/cosmic'
-import { SalesExecutive, MatchingSession, DashboardStats } from '@/types'
+import { SalesExecutive, MatchingSession, DashboardStats, SessionStatus } from '@/types'
 
 // Force dynamic rendering to prevent SSR issues
 export const dynamic = 'force-dynamic'
@@ -29,6 +29,27 @@ function DashboardLoading() {
       </div>
     </div>
   )
+}
+
+// Helper function to normalize session status to string
+function getSessionStatus(status: any): SessionStatus {
+  if (typeof status === 'string') {
+    return status as SessionStatus
+  }
+  if (status && typeof status === 'object' && status.key) {
+    return status.key as SessionStatus
+  }
+  return 'pending'
+}
+
+// Helper function to get rating value as number
+function getRatingValue(rating: any): number {
+  if (typeof rating === 'number') return rating
+  if (typeof rating === 'string') return parseInt(rating) || 0
+  if (rating && typeof rating === 'object' && rating.key) {
+    return parseInt(rating.key) || 0
+  }
+  return 0
 }
 
 function DashboardContent() {
@@ -68,40 +89,28 @@ function DashboardContent() {
 
         // Calculate stats
         const completedSessions = userSessions.filter(
-          (session) => session.metadata?.session_status?.value === 'Completed' || 
-                      session.metadata?.session_status === 'completed'
+          (session) => getSessionStatus(session.metadata?.session_status) === 'completed'
         )
         
         const upcomingSessions = userSessions.filter(
-          (session) => session.metadata?.session_status?.value === 'Confirmed' || 
-                      session.metadata?.session_status === 'confirmed'
+          (session) => getSessionStatus(session.metadata?.session_status) === 'confirmed'
         )
 
         // Calculate average rating
         let totalRating = 0
         let ratingCount = 0
+        
         userSessions.forEach((session) => {
-          if (session.metadata?.session_rating_p1) {
-            const rating1 = typeof session.metadata.session_rating_p1 === 'string' 
-              ? parseInt(session.metadata.session_rating_p1) 
-              : session.metadata.session_rating_p1.key 
-                ? parseInt(session.metadata.session_rating_p1.key) 
-                : 0
-            if (!isNaN(rating1)) {
-              totalRating += rating1
-              ratingCount++
-            }
+          const rating1 = getRatingValue(session.metadata?.session_rating_p1)
+          const rating2 = getRatingValue(session.metadata?.session_rating_p2)
+          
+          if (rating1 > 0) {
+            totalRating += rating1
+            ratingCount++
           }
-          if (session.metadata?.session_rating_p2) {
-            const rating2 = typeof session.metadata.session_rating_p2 === 'string' 
-              ? parseInt(session.metadata.session_rating_p2) 
-              : session.metadata.session_rating_p2.key 
-                ? parseInt(session.metadata.session_rating_p2.key) 
-                : 0
-            if (!isNaN(rating2)) {
-              totalRating += rating2
-              ratingCount++
-            }
+          if (rating2 > 0) {
+            totalRating += rating2
+            ratingCount++
           }
         })
 
@@ -331,37 +340,40 @@ function DashboardContent() {
             </div>
           ) : (
             <div className="space-y-4">
-              {sessions.slice(0, 3).map((session) => (
-                <div key={session.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                      <Users className="w-5 h-5 text-gray-600" />
+              {sessions.slice(0, 3).map((session) => {
+                const sessionStatus = getSessionStatus(session.metadata?.session_status)
+                return (
+                  <div key={session.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                        <Users className="w-5 h-5 text-gray-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          Session #{session.metadata?.session_id || session.id}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {session.metadata?.scheduled_datetime 
+                            ? new Date(session.metadata.scheduled_datetime).toLocaleDateString()
+                            : 'Date TBD'
+                          }
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        Session #{session.metadata?.session_id || session.id}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {session.metadata?.scheduled_datetime 
-                          ? new Date(session.metadata.scheduled_datetime).toLocaleDateString()
-                          : 'Date TBD'
-                        }
-                      </p>
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        sessionStatus === 'completed'
+                          ? 'bg-success-100 text-success-700'
+                          : sessionStatus === 'confirmed'
+                          ? 'bg-primary-100 text-primary-700'
+                          : 'bg-warning-100 text-warning-700'
+                      }`}>
+                        {sessionStatus.charAt(0).toUpperCase() + sessionStatus.slice(1)}
+                      </span>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      session.metadata?.session_status?.value === 'Completed' || session.metadata?.session_status === 'completed'
-                        ? 'bg-success-100 text-success-700'
-                        : session.metadata?.session_status?.value === 'Confirmed' || session.metadata?.session_status === 'confirmed'
-                        ? 'bg-primary-100 text-primary-700'
-                        : 'bg-warning-100 text-warning-700'
-                    }`}>
-                      {session.metadata?.session_status?.value || session.metadata?.session_status || 'Pending'}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
