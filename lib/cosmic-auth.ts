@@ -176,7 +176,7 @@ export class CosmicAuth {
     }
   }
 
-  // Generate JWT token - Fixed the type error by ensuring proper SignOptions structure
+  // Generate JWT token - Fixed the type error by ensuring proper options structure
   static generateToken(user: AuthUser): string {
     if (!JWT_SECRET) {
       throw new Error('JWT_SECRET environment variable is required')
@@ -190,9 +190,11 @@ export class CosmicAuth {
       lastName: user.lastName
     }
 
-    // Fix: Use proper SignOptions interface with explicit typing
+    // Fix: Ensure expiresIn is properly typed as string
+    const expiresIn: string = typeof JWT_EXPIRES_IN === 'string' ? JWT_EXPIRES_IN : '7d'
+    
     return jwt.sign(payload, JWT_SECRET, { 
-      expiresIn: JWT_EXPIRES_IN as string | number
+      expiresIn: expiresIn
     })
   }
 
