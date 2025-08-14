@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuth } from '@/lib/auth'
+import { useAuth } from '@/components/AuthProvider'
 import { useRouter } from 'next/navigation'
 import { getSkills, getIndustries } from '@/lib/cosmic'
 import { Skill, Industry } from '@/types'
@@ -15,7 +15,18 @@ import OnboardingStep5 from '@/components/OnboardingStep5'
 // Force dynamic rendering to prevent SSR issues
 export const dynamic = 'force-dynamic'
 
-export default function OnboardingPage() {
+function OnboardingLoading() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Setting up your onboarding...</p>
+      </div>
+    </div>
+  )
+}
+
+function OnboardingContent() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
@@ -73,13 +84,13 @@ export default function OnboardingPage() {
 
     try {
       // Create user profile in Cosmic
-      const response = await fetch('/api/profile', {
+      const response = await fetch('/api/users/profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          authUserId: user.uid,
+          authUserId: user.id,
           email: user.email,
           ...formData,
           profile_completed: true,
@@ -98,14 +109,11 @@ export default function OnboardingPage() {
   }
 
   if (authLoading || loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Setting up your onboarding...</p>
-        </div>
-      </div>
-    )
+    return <OnboardingLoading />
+  }
+
+  if (!user) {
+    return null // Will redirect to login
   }
 
   const steps = [
@@ -215,4 +223,8 @@ export default function OnboardingPage() {
       </div>
     </div>
   )
+}
+
+export default function OnboardingPage() {
+  return <OnboardingContent />
 }

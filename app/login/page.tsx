@@ -1,6 +1,8 @@
 'use client'
 
-import { Suspense } from 'react'
+import { useEffect, Suspense } from 'react'
+import { useAuth } from '@/components/AuthProvider'
+import { useRouter } from 'next/navigation'
 import LoginForm from '@/components/LoginForm'
 
 // Force dynamic rendering to prevent SSR issues
@@ -20,10 +22,27 @@ function LoginLoading() {
   )
 }
 
+function LoginPageContent() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/dashboard')
+    }
+  }, [loading, user, router])
+
+  if (loading) {
+    return <LoginLoading />
+  }
+
+  return <LoginForm />
+}
+
 export default function LoginPage() {
   return (
     <Suspense fallback={<LoginLoading />}>
-      <LoginForm />
+      <LoginPageContent />
     </Suspense>
   )
 }

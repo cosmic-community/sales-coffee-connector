@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAuth } from '@/lib/auth'
+import { useAuth } from '@/components/AuthProvider'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
@@ -20,7 +20,18 @@ import { SalesExecutive, MatchingSession, DashboardStats } from '@/types'
 // Force dynamic rendering to prevent SSR issues
 export const dynamic = 'force-dynamic'
 
-export default function DashboardPage() {
+function DashboardLoading() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading your dashboard...</p>
+      </div>
+    </div>
+  )
+}
+
+function DashboardContent() {
   const { user, logout, loading: authLoading } = useAuth()
   const router = useRouter()
   const [profile, setProfile] = useState<SalesExecutive | null>(null)
@@ -124,14 +135,11 @@ export default function DashboardPage() {
   }
 
   if (authLoading || loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your dashboard...</p>
-        </div>
-      </div>
-    )
+    return <DashboardLoading />
+  }
+
+  if (!user) {
+    return null // Will redirect to login
   }
 
   if (!profile) {
@@ -343,4 +351,8 @@ export default function DashboardPage() {
       </div>
     </div>
   )
+}
+
+export default function DashboardPage() {
+  return <DashboardContent />
 }
