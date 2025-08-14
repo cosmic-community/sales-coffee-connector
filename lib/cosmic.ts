@@ -25,7 +25,7 @@ export async function getSalesExecutives(): Promise<SalesExecutive[]> {
     
     return objects.map(transformSalesExecutive)
   } catch (error: unknown) {
-    const cosmicError = error as any
+    const cosmicError = error as { status?: number }
     if (cosmicError.status === 404) {
       return []
     }
@@ -42,7 +42,7 @@ export async function getSalesExecutiveByEmail(email: string): Promise<SalesExec
     
     return transformSalesExecutive(object)
   } catch (error: unknown) {
-    const cosmicError = error as any
+    const cosmicError = error as { status?: number }
     if (cosmicError.status === 404) {
       return null
     }
@@ -59,7 +59,7 @@ export async function getSalesExecutiveByAuthId(authUserId: string): Promise<Sal
     
     return transformSalesExecutive(object)
   } catch (error: unknown) {
-    const cosmicError = error as any
+    const cosmicError = error as { status?: number }
     if (cosmicError.status === 404) {
       return null
     }
@@ -76,7 +76,7 @@ export async function getSkills(): Promise<Skill[]> {
     
     return objects as Skill[]
   } catch (error: unknown) {
-    const cosmicError = error as any
+    const cosmicError = error as { status?: number }
     if (cosmicError.status === 404) {
       return []
     }
@@ -93,7 +93,7 @@ export async function getIndustries(): Promise<Industry[]> {
     
     return objects as Industry[]
   } catch (error: unknown) {
-    const cosmicError = error as any
+    const cosmicError = error as { status?: number }
     if (cosmicError.status === 404) {
       return []
     }
@@ -116,7 +116,7 @@ export async function getUserSessions(userId: string): Promise<MatchingSession[]
     
     return objects as MatchingSession[]
   } catch (error: unknown) {
-    const cosmicError = error as any
+    const cosmicError = error as { status?: number }
     if (cosmicError.status === 404) {
       return []
     }
