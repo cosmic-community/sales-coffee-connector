@@ -23,7 +23,7 @@ function getJwtSecret(): string {
 // Sign JWT token
 export function signJwt(
   payload: Omit<TokenPayload, 'iat' | 'exp'>, 
-  options: SignOptions = { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+  options: SignOptions = { expiresIn: (process.env.JWT_EXPIRES_IN as string) || '7d' }
 ): string {
   try {
     const secret = getJwtSecret()
