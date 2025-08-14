@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
-import { Users, Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { Users, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
 import { validateLoginForm } from '@/utils/validation'
 
 export default function LoginForm() {
@@ -35,9 +35,11 @@ export default function LoginForm() {
 
     setLoading(true)
     try {
+      console.log('Attempting login with:', { email, hasPassword: !!password })
       await login(email, password)
       router.push(returnUrl)
     } catch (error: any) {
+      console.error('Login error:', error)
       setError(error.message || 'Failed to sign in')
     } finally {
       setLoading(false)
@@ -67,8 +69,9 @@ export default function LoginForm() {
         {/* Sign In Form */}
         <div className="card">
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-              {error}
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+              <div className="text-red-700 text-sm">{error}</div>
             </div>
           )}
 
@@ -84,7 +87,7 @@ export default function LoginForm() {
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => setEmail(e.target.value.trim())}
                   className="input-field pl-10"
                   placeholder="your@email.com"
                   autoComplete="email"

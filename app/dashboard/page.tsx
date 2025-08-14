@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAuth } from '@/lib/auth'
+import { useAuth } from '@/components/AuthProvider'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
@@ -15,9 +15,44 @@ import {
   LogOut
 } from 'lucide-react'
 import { getSalesExecutiveByAuthId, getUserSessions } from '@/lib/cosmic'
-import { SalesExecutive, MatchingSession, DashboardStats } from '@/types'
+import { SalesExecutive, MatchingSession, DashboardStats, SessionStatus } from '@/types'
 
-export default function DashboardPage() {
+// Force dynamic rendering to prevent SSR issues
+export const dynamic = 'force-dynamic'
+
+function DashboardLoading() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading your dashboard...</p>
+      </div>
+    </div>
+  )
+}
+
+// Helper function to normalize session status to string
+function getSessionStatus(status: any): SessionStatus {
+  if (typeof status === 'string') {
+    return status as SessionStatus
+  }
+  if (status && typeof status === 'object' && status.key) {
+    return status.key as SessionStatus
+  }
+  return 'pending'
+}
+
+// Helper function to get rating value as number
+function getRatingValue(rating: any): number {
+  if (typeof rating === 'number') return rating
+  if (typeof rating === 'string') return parseInt(rating) || 0
+  if (rating && typeof rating === 'object' && rating.key) {
+    return parseInt(rating.key) || 0
+  }
+  return 0
+}
+
+function DashboardContent() {
   const { user, logout, loading: authLoading } = useAuth()
   const router = useRouter()
   const [profile, setProfile] = useState<SalesExecutive | null>(null)
@@ -50,27 +85,31 @@ export default function DashboardPage() {
       if (userProfile) {
         // Load user sessions
         const userSessions = await getUserSessions(userProfile.id)
-        setSessions(userSessions as MatchingSession[])
+        setSessions(userSessions)
 
         // Calculate stats
         const completedSessions = userSessions.filter(
-          (session: MatchingSession) => session.metadata?.session_status === 'completed'
+          (session) => getSessionStatus(session.metadata?.session_status) === 'completed'
         )
         
         const upcomingSessions = userSessions.filter(
-          (session: MatchingSession) => session.metadata?.session_status === 'confirmed'
+          (session) => getSessionStatus(session.metadata?.session_status) === 'confirmed'
         )
 
         // Calculate average rating
         let totalRating = 0
         let ratingCount = 0
-        userSessions.forEach((session: MatchingSession) => {
-          if (session.metadata?.session_rating_p1) {
-            totalRating += parseInt(session.metadata.session_rating_p1)
+        
+        userSessions.forEach((session) => {
+          const rating1 = getRatingValue(session.metadata?.session_rating_p1)
+          const rating2 = getRatingValue(session.metadata?.session_rating_p2)
+          
+          if (rating1 > 0) {
+            totalRating += rating1
             ratingCount++
           }
-          if (session.metadata?.session_rating_p2) {
-            totalRating += parseInt(session.metadata.session_rating_p2)
+          if (rating2 > 0) {
+            totalRating += rating2
             ratingCount++
           }
         })
@@ -107,7 +146,8 @@ export default function DashboardPage() {
     
     let completedFields = 0
     requiredFields.forEach(field => {
-      if (profile.metadata?.[field as keyof typeof profile.metadata]) {
+      const value = profile.metadata?.[field as keyof typeof profile.metadata]
+      if (value && value !== '' && value !== 0) {
         completedFields++
       }
     })
@@ -121,14 +161,11 @@ export default function DashboardPage() {
   }
 
   if (authLoading || loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your dashboard...</p>
-        </div>
-      </div>
-    )
+    return <DashboardLoading />
+  }
+
+  if (!user) {
+    return null // Will redirect to login
   }
 
   if (!profile) {
@@ -303,41 +340,48 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {sessions.slice(0, 3).map((session) => (
-                <div key={session.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                      <Users className="w-5 h-5 text-gray-600" />
+              {sessions.slice(0, 3).map((session) => {
+                const sessionStatus = getSessionStatus(session.metadata?.session_status)
+                return (
+                  <div key={session.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                        <Users className="w-5 h-5 text-gray-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          Session #{session.metadata?.session_id || session.id}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {session.metadata?.scheduled_datetime 
+                            ? new Date(session.metadata.scheduled_datetime).toLocaleDateString()
+                            : 'Date TBD'
+                          }
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        Session #{session.metadata?.session_id || session.id}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {session.metadata?.scheduled_datetime 
-                          ? new Date(session.metadata.scheduled_datetime).toLocaleDateString()
-                          : 'Date TBD'
-                        }
-                      </p>
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        sessionStatus === 'completed'
+                          ? 'bg-success-100 text-success-700'
+                          : sessionStatus === 'confirmed'
+                          ? 'bg-primary-100 text-primary-700'
+                          : 'bg-warning-100 text-warning-700'
+                      }`}>
+                        {sessionStatus.charAt(0).toUpperCase() + sessionStatus.slice(1)}
+                      </span>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      session.metadata?.session_status === 'completed' 
-                        ? 'bg-success-100 text-success-700'
-                        : session.metadata?.session_status === 'confirmed'
-                        ? 'bg-primary-100 text-primary-700'
-                        : 'bg-warning-100 text-warning-700'
-                    }`}>
-                      {session.metadata?.session_status || 'Pending'}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
       </div>
     </div>
   )
+}
+
+export default function DashboardPage() {
+  return <DashboardContent />
 }

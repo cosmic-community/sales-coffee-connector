@@ -10,7 +10,7 @@ export interface CosmicObject {
   modified_at: string;
 }
 
-// Sales Executive interface
+// Sales Executive interface - Updated to match Cosmic CMS structure
 export interface SalesExecutive extends CosmicObject {
   type: 'sales-executives';
   metadata: {
@@ -18,28 +18,43 @@ export interface SalesExecutive extends CosmicObject {
     first_name?: string;
     last_name?: string;
     email?: string;
-    password_hash?: string; // Added for Cosmic auth
+    password_hash?: string;
     profile_photo?: {
       url: string;
       imgix_url: string;
-    };
-    company_name?: string;
-    job_title?: string;
+    } | null;
+    company_name?: string | null;
+    job_title?: string | null;
     years_in_sales?: number;
-    linkedin_url?: string;
-    timezone?: Timezone;
+    linkedin_url?: string | null;
+    timezone?: {
+      key: string;
+      value: string;
+    };
     industries?: Industry[];
-    company_size?: CompanySize;
+    company_size?: {
+      key: string;
+      value: string;
+    };
     annual_quota?: number;
     expertise_areas?: Skill[];
     learning_goals?: Skill[];
     willing_to_mentor?: boolean;
     seeking_mentorship?: boolean;
-    max_meetings_per_week?: MaxMeetings;
-    preferred_meeting_days?: string[];
+    max_meetings_per_week?: {
+      key: string;
+      value: string;
+    };
+    preferred_meeting_days?: string[] | null;
     profile_completed?: boolean;
-    account_status?: AccountStatus;
+    account_status?: {
+      key: string;
+      value: string;
+    };
   };
+  // Add computed properties for easier access
+  firstName?: string;
+  email?: string;
 }
 
 // Skill interface
@@ -160,13 +175,23 @@ export interface MatchScore {
   reasons: string[];
 }
 
-// Authentication types - Updated for Cosmic auth with uid property
+// Authentication types - Updated with all required properties
 export interface AuthUser {
   id: string;
-  uid: string; // Added uid property for compatibility
+  uid: string;
   email: string;
   firstName: string;
   lastName: string;
+}
+
+// Updated AuthContextType to include all required properties
+export interface AuthContextType {
+  user: AuthUser | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
+  logout: () => void;
+  updateProfile: (data: Partial<AuthUser>) => Promise<void>;
 }
 
 // Component prop types

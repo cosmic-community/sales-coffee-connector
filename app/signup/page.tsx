@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/components/AuthProvider'
 import { Users, Mail, Lock, Eye, EyeOff, User } from 'lucide-react'
 import { validateSignupForm } from '@/utils/validation'
 import { checkPasswordStrength, getPasswordStrengthText, getPasswordStrengthColor } from '@/utils/password'
@@ -19,7 +19,7 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
-  const { signup } = useAuth()
+  const { signUp } = useAuth()
   const router = useRouter()
 
   // Password strength check
@@ -38,7 +38,7 @@ export default function SignUpPage() {
 
     setLoading(true)
     try {
-      await signup(email, password, firstName, lastName)
+      await signUp(email, password, firstName, lastName)
       // Redirect to onboarding to complete profile
       router.push('/onboarding')
     } catch (error: any) {
@@ -60,7 +60,7 @@ export default function SignUpPage() {
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-6">
-            <div className="bg-primary-500 text-white p-3 rounded-full">
+            <div className="bg-blue-500 text-white p-3 rounded-full">
               <Users className="w-8 h-8" />
             </div>
           </div>
@@ -69,7 +69,7 @@ export default function SignUpPage() {
         </div>
 
         {/* Sign Up Form */}
-        <div className="card">
+        <div className="bg-white p-8 rounded-lg shadow-md border">
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
               {error}
@@ -91,7 +91,7 @@ export default function SignUpPage() {
                     required
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="input-field pl-10"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="John"
                   />
                 </div>
@@ -109,7 +109,7 @@ export default function SignUpPage() {
                     required
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="input-field pl-10"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Doe"
                   />
                 </div>
@@ -128,7 +128,7 @@ export default function SignUpPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="input-field pl-10"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="your@email.com"
                 />
               </div>
@@ -146,7 +146,7 @@ export default function SignUpPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="input-field pl-10 pr-10"
+                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="••••••••"
                 />
                 <button
@@ -195,7 +195,7 @@ export default function SignUpPage() {
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="input-field pl-10 pr-10"
+                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="••••••••"
                 />
                 <button
@@ -211,7 +211,7 @@ export default function SignUpPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? 'Creating Account...' : 'Create Account'}
             </button>
@@ -243,7 +243,7 @@ export default function SignUpPage() {
 
           <p className="mt-4 text-center text-sm text-gray-600">
             Already have an account?{' '}
-            <Link href="/login" className="text-primary-600 hover:text-primary-500 font-medium">
+            <Link href="/login" className="text-blue-600 hover:text-blue-500 font-medium">
               Sign in here
             </Link>
           </p>
@@ -252,11 +252,11 @@ export default function SignUpPage() {
         {/* Terms */}
         <p className="text-center text-xs text-gray-500">
           By creating an account, you agree to our{' '}
-          <Link href="/terms" className="text-primary-600 hover:text-primary-500">
+          <Link href="/terms" className="text-blue-600 hover:text-blue-500">
             Terms of Service
           </Link>{' '}
           and{' '}
-          <Link href="/privacy" className="text-primary-600 hover:text-primary-500">
+          <Link href="/privacy" className="text-blue-600 hover:text-blue-500">
             Privacy Policy
           </Link>
         </p>

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { CosmicAuth } from '@/lib/cosmic-auth'
 import { getSalesExecutiveByAuthId } from '@/lib/cosmic'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization')

@@ -1,24 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'cdn.cosmicjs.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
-      },
-    ],
+    domains: ['images.unsplash.com', 'cdn.cosmicjs.com'],
   },
-  typescript: {
-    tsconfigPath: './tsconfig.json',
-  },
+  // Ensure proper handling of dynamic routes
+  experimental: {
+    serverComponentsExternalPackages: ['@cosmicjs/sdk']
+  }
 }
 
 module.exports = nextConfig
