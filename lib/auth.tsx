@@ -7,7 +7,9 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
-  updateProfile
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth'
 import { auth } from './firebase'
 
@@ -16,7 +18,9 @@ interface AuthContextType {
   loading: boolean
   signIn: (email: string, password: string) => Promise<User>
   signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<User>
+  signInWithGoogle: () => Promise<User>
   signOut: () => Promise<void>
+  logout: () => Promise<void>
   isFirebaseAvailable: boolean
 }
 
@@ -66,18 +70,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return result.user
   }
 
-  const signUp = async (email: string, password: string, firstName: string, lastName: string): Promise<User> => {
+  const signUp = async (email: string, password: string, firstName?: string, lastName?: string): Promise<User> => {
     if (!auth) {
       throw new Error('Firebase is not available. Please check your configuration.')
     }
     
     const result = await createUserWithEmailAndPassword(auth, email, password)
     
-    // Update the user profile with name
-    await updateProfile(result.user, {
-      displayName: `${firstName} ${lastName}`
-    })
+    // Update the user profile with name if provided
+    if (firstName && lastName) {
+      await updateProfile(result.user, {
+        displayName: `${firstName} ${lastName}`
+      })
+    }
     
+    return result.user
+  }
+
+  const signInWithGoogle = async (): Promise<User> => {
+    if (!auth) {
+      throw new Error('Firebase is not available. Please check your configuration.')
+    }
+    
+    const provider = new GoogleAuthProvider()
+    const result = await signInWithPopup(auth, provider)
     return result.user
   }
 
@@ -89,12 +105,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await firebaseSignOut(auth)
   }
 
+  // Alias for signOut to support both naming conventions
+  const logout = signOut
+
   const value: AuthContextType = {
     user,
     loading,
     signIn,
     signUp,
+    signInWithGoogle,
     signOut,
+    logout,
     isFirebaseAvailable
   }
 
