@@ -1,6 +1,7 @@
 import { createBucketClient } from '@cosmicjs/sdk'
 import bcrypt from 'bcryptjs'
-import jwt, { SignOptions } from 'jsonwebtoken'
+import { signJwt, verifyJwt, TokenPayload } from '@/lib/jwt'
+import { authLogger } from '@/utils/auth-logger'
 import { SalesExecutive } from '@/types'
 
 // Create Cosmic client with write permissions for server-side auth operations
@@ -10,28 +11,6 @@ const cosmic = createBucketClient({
   writeKey: process.env.COSMIC_WRITE_KEY as string,
   apiEnvironment: 'staging'
 })
-
-// JWT helper functions
-function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error('JWT_SECRET is not set');
-  }
-  return secret;
-}
-
-function signAccessToken(
-  payload: object,
-  opts: SignOptions = { expiresIn: '7d' }
-): string {
-  const secret = getJwtSecret();
-  return jwt.sign(payload, secret, opts);
-}
-
-function verifyAccessToken<T extends object = any>(token: string): T {
-  const secret = getJwtSecret();
-  return jwt.verify(token, secret) as T;
-}
 
 export interface AuthUser {
   id: string
@@ -61,9 +40,16 @@ export class CosmicAuth {
     lastName: string
   ): Promise<AuthResponse> {
     try {
+      authLogger.logAuthAttempt({
+        route: '/api/auth/signup',
+        method: 'POST',
+        email
+      })
+
       // Check if user already exists
       const existingUser = await this.getUserByEmail(email)
       if (existingUser) {
+        authLogger.logSignInFailure(email, 'User already exists', '/api/auth/signup')
         throw new Error('User with this email already exists')
       }
 
@@ -111,39 +97,53 @@ export class CosmicAuth {
 
       const token = this.generateToken(user)
 
+      authLogger.logSignInSuccess(authUserId, email, '/api/auth/signup')
       return { user, token }
 
     } catch (error: any) {
       console.error('Signup error:', error)
+      authLogger.logSignInFailure(email, error.message, '/api/auth/signup')
       throw new Error(error.message || 'Failed to create user')
     }
   }
 
-  // Sign in existing user - Fixed to handle active account status properly
+  // Sign in existing user - Enhanced with better logging and error handling
   static async signIn(email: string, password: string): Promise<AuthResponse> {
     try {
+      authLogger.logAuthAttempt({
+        route: '/api/auth/login',
+        method: 'POST',
+        email
+      })
+
       // Find user by email
       const cosmicUser = await this.getUserByEmail(email)
       if (!cosmicUser) {
+        authLogger.logSignInFailure(email, 'User not found', '/api/auth/login')
         throw new Error('Invalid email or password')
       }
 
-      // Debug logging
-      console.log('Found user:', {
-        id: cosmicUser.id,
-        email: cosmicUser.metadata?.email,
-        hasPassword: !!cosmicUser.metadata?.password_hash,
-        accountStatus: cosmicUser.metadata?.account_status
-      })
+      // Enhanced debug logging
+      if (process.env.LOG_AUTH === '1') {
+        console.log('Found user for sign-in:', {
+          id: cosmicUser.id,
+          email: cosmicUser.metadata?.email,
+          hasPassword: !!cosmicUser.metadata?.password_hash,
+          accountStatus: cosmicUser.metadata?.account_status,
+          authUserId: cosmicUser.metadata?.auth_user_id
+        })
+      }
 
       // Verify password
       const passwordHash = cosmicUser.metadata?.password_hash
       if (!passwordHash) {
+        authLogger.logSignInFailure(email, 'No password hash found', '/api/auth/login')
         throw new Error('User account is not properly configured')
       }
 
       const isPasswordValid = await bcrypt.compare(password, passwordHash)
       if (!isPasswordValid) {
+        authLogger.logSignInFailure(email, 'Invalid password', '/api/auth/login')
         throw new Error('Invalid email or password')
       }
 
@@ -163,15 +163,9 @@ export class CosmicAuth {
       // Normalize status comparison - accept both 'active' and 'Active'
       const normalizedStatus = statusValue.toLowerCase()
       if (normalizedStatus !== 'active') {
-        if (normalizedStatus === 'pending') {
-          throw new Error('Your account is pending approval. Please wait for account activation.')
-        } else if (normalizedStatus === 'suspended') {
-          throw new Error('Your account has been suspended. Please contact support.')
-        } else if (normalizedStatus === 'inactive') {
-          throw new Error('Your account is inactive. Please contact support.')
-        } else {
-          throw new Error('Account status not recognized. Please contact support.')
-        }
+        const errorMsg = this.getAccountStatusError(normalizedStatus)
+        authLogger.logSignInFailure(email, `Account status: ${normalizedStatus}`, '/api/auth/login')
+        throw new Error(errorMsg)
       }
 
       // Create auth response for active users
@@ -186,11 +180,27 @@ export class CosmicAuth {
 
       const token = this.generateToken(user)
 
+      authLogger.logSignInSuccess(authUserId, email, '/api/auth/login')
       return { user, token }
 
     } catch (error: any) {
       console.error('Sign in error:', error)
+      authLogger.logSignInFailure(email, error.message, '/api/auth/login')
       throw new Error(error.message || 'Failed to sign in')
+    }
+  }
+
+  // Helper to get appropriate error message for account status
+  private static getAccountStatusError(status: string): string {
+    switch (status) {
+      case 'pending':
+        return 'Your account is pending approval. Please wait for account activation.'
+      case 'suspended':
+        return 'Your account has been suspended. Please contact support.'
+      case 'inactive':
+        return 'Your account is inactive. Please contact support.'
+      default:
+        return 'Account status not recognized. Please contact support.'
     }
   }
 
@@ -235,23 +245,29 @@ export class CosmicAuth {
     }
   }
 
-  // Generate JWT token
+  // Generate JWT token using new jwt utils
   static generateToken(user: AuthUser): string {
-    const payload = {
-      id: user.id,
-      uid: user.uid,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName
+    try {
+      return signJwt({
+        id: user.id,
+        uid: user.uid,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName
+      })
+    } catch (error) {
+      console.error('Token generation error:', error)
+      throw new Error('Failed to generate authentication token')
     }
-    
-    return signAccessToken(payload, { expiresIn: '7d' })
   }
 
-  // Verify JWT token
+  // Verify JWT token using new jwt utils
   static verifyToken(token: string): AuthUser | null {
     try {
-      const decoded = verifyAccessToken<AuthUser>(token)
+      const decoded = verifyJwt<TokenPayload>(token)
+      
+      authLogger.logTokenVerification(true, decoded.id)
+      
       return {
         id: decoded.id,
         uid: decoded.uid || decoded.id,
@@ -261,6 +277,7 @@ export class CosmicAuth {
       }
     } catch (error) {
       console.error('Token verification error:', error)
+      authLogger.logTokenVerification(false)
       return null
     }
   }
