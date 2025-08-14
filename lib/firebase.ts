@@ -21,45 +21,52 @@ const requiredEnvVars = [
   'NEXT_PUBLIC_FIREBASE_APP_ID'
 ] as const
 
-// Check if we're in a build environment and Firebase vars are missing
+// Check for missing environment variables
 const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar])
-const isBuildTime = process.env.NODE_ENV === 'production' && process.env.VERCEL
-
-// Only throw error if we're not in build time or if Firebase is actually needed
-if (missingEnvVars.length > 0 && !isBuildTime) {
-  console.warn(`Missing Firebase environment variables: ${missingEnvVars.join(', ')}. Firebase features will be disabled.`)
-}
+const hasAllConfig = missingEnvVars.length === 0
 
 // Initialize Firebase only if all config is available
 let app: FirebaseApp | null = null
 let auth: Auth | null = null
+let firebaseAvailable = false
 
 try {
-  // Only initialize if we have all required config
-  if (missingEnvVars.length === 0) {
+  if (hasAllConfig) {
     // Get existing apps to prevent re-initialization
     const existingApps = getApps()
     
     if (existingApps.length === 0) {
-      // Initialize new app - Fixed: Handle undefined return type properly
-      const firebaseApp = initializeApp(firebaseConfig)
-      app = firebaseApp || null
+      // Initialize new app
+      app = initializeApp(firebaseConfig)
     } else {
-      // Use existing app - Fixed: Handle potential undefined properly
-      const existingApp = existingApps[0]
-      app = existingApp || null
+      // Use existing app
+      app = existingApps[0]!
     }
     
-    // Initialize auth - Fixed: Proper null check before using app
-    if (app !== null) {
-      auth = getAuth(app)
-    }
+    // Initialize auth
+    auth = getAuth(app)
+    firebaseAvailable = true
+    
+    console.log('✅ Firebase initialized successfully')
+  } else {
+    console.warn(`❌ Firebase not available. Missing environment variables: ${missingEnvVars.join(', ')}`)
+    console.warn('📝 Please add Firebase configuration to your .env.local file. See .env.example for required variables.')
   }
 } catch (error) {
-  console.error('Failed to initialize Firebase:', error)
-  // Firebase will be null, which components can check for
+  console.error('❌ Failed to initialize Firebase:', error)
   app = null
   auth = null
+  firebaseAvailable = false
+}
+
+// Helper function to check if Firebase is available
+export const isFirebaseAvailable = (): boolean => {
+  return firebaseAvailable
+}
+
+// Helper function to get missing environment variables
+export const getMissingFirebaseEnvVars = (): string[] => {
+  return missingEnvVars
 }
 
 export { auth }
