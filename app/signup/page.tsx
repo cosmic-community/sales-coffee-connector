@@ -33,9 +33,9 @@ export default function SignUpPage() {
 
     setLoading(true)
     try {
-      // Fixed: Added proper error handling parameters for signUp function
+      // Fixed: signUp function call without extra parameters
       const result = await signUp(email, password)
-      if (result.user) {
+      if (result) {
         router.push('/verify-email')
       }
     } catch (error: any) {
@@ -51,7 +51,7 @@ export default function SignUpPage() {
     
     try {
       const result = await signInWithGoogle()
-      if (result.user) {
+      if (result) {
         router.push('/onboarding')
       }
     } catch (error: any) {
