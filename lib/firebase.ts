@@ -41,21 +41,25 @@ try {
     const existingApps = getApps()
     
     if (existingApps.length === 0) {
-      // Initialize new app
-      app = initializeApp(firebaseConfig)
+      // Initialize new app - Fixed: Handle undefined return type properly
+      const firebaseApp = initializeApp(firebaseConfig)
+      app = firebaseApp || null
     } else {
-      // Use existing app
-      app = existingApps[0]
+      // Use existing app - Fixed: Handle potential undefined properly
+      const existingApp = existingApps[0]
+      app = existingApp || null
     }
     
-    // Initialize auth
-    if (app) {
+    // Initialize auth - Fixed: Proper null check before using app
+    if (app !== null) {
       auth = getAuth(app)
     }
   }
 } catch (error) {
   console.error('Failed to initialize Firebase:', error)
   // Firebase will be null, which components can check for
+  app = null
+  auth = null
 }
 
 export { auth }

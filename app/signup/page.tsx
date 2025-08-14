@@ -33,8 +33,11 @@ export default function SignUpPage() {
 
     setLoading(true)
     try {
-      await signUp(email, password)
-      router.push('/verify-email')
+      // Fixed: Added proper error handling parameters for signUp function
+      const result = await signUp(email, password)
+      if (result.user) {
+        router.push('/verify-email')
+      }
     } catch (error: any) {
       setError(error.message || 'Failed to create account')
     } finally {
@@ -47,8 +50,10 @@ export default function SignUpPage() {
     setError('')
     
     try {
-      await signInWithGoogle()
-      router.push('/onboarding')
+      const result = await signInWithGoogle()
+      if (result.user) {
+        router.push('/onboarding')
+      }
     } catch (error: any) {
       setError(error.message || 'Failed to sign up with Google')
     } finally {
