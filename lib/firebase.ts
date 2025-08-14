@@ -21,7 +21,8 @@ if (typeof window !== 'undefined') {
   if (existingApps.length === 0) {
     app = initializeApp(firebaseConfig)
   } else {
-    app = existingApps[0] as FirebaseApp // Safe assertion since we know length > 0
+    // Fix TypeScript error: safely access first app since we know length > 0
+    app = existingApps[0]!
   }
   auth = getAuth(app)
 } else {
