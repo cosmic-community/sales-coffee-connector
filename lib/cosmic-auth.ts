@@ -190,7 +190,12 @@ export class CosmicAuth {
       lastName: user.lastName
     }
 
-    return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN })
+    // Fix: Properly type the options object for jwt.sign
+    const options: jwt.SignOptions = {
+      expiresIn: JWT_EXPIRES_IN
+    }
+
+    return jwt.sign(payload, JWT_SECRET, options)
   }
 
   // Verify JWT token
