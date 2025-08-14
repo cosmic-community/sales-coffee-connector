@@ -27,8 +27,9 @@ export function signJwt(
 ): string {
   try {
     const secret = getJwtSecret()
-    // Fix TypeScript error: ensure expiresIn has proper type compatibility
-    const expiresIn = process.env.JWT_EXPIRES_IN || options.expiresIn || '7d'
+    // Fix TypeScript error: ensure expiresIn is properly typed
+    const envExpiresIn = process.env.JWT_EXPIRES_IN
+    const expiresIn = envExpiresIn || options.expiresIn || '7d'
     const signOptions: SignOptions = { ...options, expiresIn }
     return jwt.sign(payload, secret, signOptions)
   } catch (error) {
