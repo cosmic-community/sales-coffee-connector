@@ -4,18 +4,34 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
-    // For now, logout is handled client-side by removing the token
-    // In a more advanced implementation, you might maintain a token blacklist
+    const response = NextResponse.json({ message: 'Logged out successfully' }, { status: 200 })
     
-    return NextResponse.json(
-      { message: 'Logged out successfully' },
-      { status: 200 }
-    )
+    // Clear both secure and non-secure cookies
+    const isProduction = process.env.NODE_ENV === 'production'
+    
+    if (isProduction) {
+      response.cookies.set('__Secure-auth-token', '', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax',
+        maxAge: 0,
+        path: '/'
+      })
+    }
+    
+    response.cookies.set('auth-token', '', {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      maxAge: 0,
+      path: '/'
+    })
 
+    return response
   } catch (error: any) {
     console.error('Logout error:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to logout' },
+      { error: 'Failed to logout' },
       { status: 500 }
     )
   }

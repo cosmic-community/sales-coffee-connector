@@ -5,6 +5,7 @@ const cosmic = createBucketClient({
   bucketSlug: process.env.COSMIC_BUCKET_SLUG as string,
   readKey: process.env.COSMIC_READ_KEY as string,
   writeKey: process.env.COSMIC_WRITE_KEY as string,
+  apiEnvironment: 'staging'
 })
 
 // Helper function to transform Cosmic object to include computed properties
@@ -147,6 +148,13 @@ export async function createSalesExecutive(data: {
       annual_quota: 0,
       willing_to_mentor: false,
       seeking_mentorship: false,
+      max_meetings_per_week: { key: '2', value: '2 meetings per week' },
+      timezone: { key: 'EST', value: 'Eastern Time (UTC-5)' },
+      company_size: { key: 'startup', value: 'Startup (1-50 employees)' },
+      industries: [],
+      expertise_areas: [],
+      learning_goals: [],
+      preferred_meeting_days: []
     }
   })
 

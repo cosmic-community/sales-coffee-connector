@@ -35,7 +35,22 @@ export async function POST(request: NextRequest) {
     // Sign up user
     const authResponse = await CosmicAuth.signUp(email, password, firstName, lastName)
 
-    return NextResponse.json(authResponse, { status: 201 })
+    // Create response with cookie
+    const response = NextResponse.json(authResponse, { status: 201 })
+    
+    // Set secure cookies for production
+    const isProduction = process.env.NODE_ENV === 'production'
+    const cookieName = isProduction ? '__Secure-auth-token' : 'auth-token'
+    
+    response.cookies.set(cookieName, authResponse.token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/'
+    })
+
+    return response
 
   } catch (error: any) {
     console.error('Signup error:', error)

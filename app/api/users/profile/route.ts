@@ -6,16 +6,24 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
+    // Try multiple token sources
     const authHeader = request.headers.get('Authorization')
+    const headerToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // Fallback to cookie token
+    const isProduction = process.env.NODE_ENV === 'production'
+    const secureCookieToken = request.cookies.get('__Secure-auth-token')?.value
+    const regularCookieToken = request.cookies.get('auth-token')?.value
+    
+    const cookieToken = isProduction ? (secureCookieToken || regularCookieToken) : regularCookieToken
+    const token = headerToken || cookieToken
+
+    if (!token) {
       return NextResponse.json(
-        { error: 'No valid authorization header' },
+        { error: 'No valid authorization token' },
         { status: 401 }
       )
     }
-
-    const token = authHeader.substring(7) // Remove "Bearer " prefix
 
     // Verify token
     const user = CosmicAuth.verifyToken(token)

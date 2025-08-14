@@ -8,16 +8,24 @@ export const dynamic = 'force-dynamic'
 
 export async function PUT(request: NextRequest) {
   try {
+    // Try multiple token sources
     const authHeader = request.headers.get('Authorization')
+    const headerToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // Fallback to cookie token
+    const isProduction = process.env.NODE_ENV === 'production'
+    const secureCookieToken = request.cookies.get('__Secure-auth-token')?.value
+    const regularCookieToken = request.cookies.get('auth-token')?.value
+    
+    const cookieToken = isProduction ? (secureCookieToken || regularCookieToken) : regularCookieToken
+    const token = headerToken || cookieToken
+
+    if (!token) {
       return NextResponse.json(
-        { error: 'No valid authorization header' },
+        { error: 'No valid authorization token' },
         { status: 401 }
       )
     }
-
-    const token = authHeader.substring(7) // Remove "Bearer " prefix
 
     // Verify token
     const user = CosmicAuth.verifyToken(token)
@@ -69,7 +77,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ 
       message: 'Profile updated successfully',
-      profile: updatedProfile
+      profile: updatedProfile.object
     }, { status: 200 })
 
   } catch (error: any) {
@@ -110,18 +118,26 @@ export async function POST(request: NextRequest) {
       metadata: {
         auth_user_id: authUserId,
         email: email,
-        account_status: 'active',
+        account_status: { key: 'active', value: 'Active' },
         profile_completed: false,
         willing_to_mentor: false,
         seeking_mentorship: false,
-        max_meetings_per_week: '2', // default
+        max_meetings_per_week: { key: '2', value: '2 meetings per week' }, // default
+        years_in_sales: 0,
+        annual_quota: 0,
+        timezone: { key: 'EST', value: 'Eastern Time (UTC-5)' },
+        company_size: { key: 'startup', value: 'Startup (1-50 employees)' },
+        industries: [],
+        expertise_areas: [],
+        learning_goals: [],
+        preferred_meeting_days: [],
         ...profileData
       }
     })
 
     return NextResponse.json({ 
       message: 'Profile created successfully',
-      profile: newProfile
+      profile: newProfile.object
     }, { status: 201 })
 
   } catch (error: any) {

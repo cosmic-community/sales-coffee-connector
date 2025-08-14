@@ -70,17 +70,21 @@ export class CosmicAuth {
           last_name: lastName,
           email: email,
           password_hash: hashedPassword,
-          account_status: 'active', // Set to active by default for now
+          account_status: { key: 'active', value: 'Active' }, // Use proper object format
           profile_completed: false,
           willing_to_mentor: false,
           seeking_mentorship: false,
-          max_meetings_per_week: '2',
+          max_meetings_per_week: { key: '2', value: '2 meetings per week' },
           years_in_sales: 0,
           annual_quota: 0,
           company_name: '',
           job_title: '',
-          timezone: '',
-          company_size: ''
+          timezone: { key: 'EST', value: 'Eastern Time (UTC-5)' }, // Default timezone
+          company_size: { key: 'startup', value: 'Startup (1-50 employees)' }, // Default company size
+          industries: [],
+          expertise_areas: [],
+          learning_goals: [],
+          preferred_meeting_days: []
         }
       }
 
