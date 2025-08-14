@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/components/AuthProvider'
 import { Users, Mail, Lock, Eye, EyeOff, User } from 'lucide-react'
 import { validateSignupForm } from '@/utils/validation'
 import { checkPasswordStrength, getPasswordStrengthText, getPasswordStrengthColor } from '@/utils/password'
@@ -19,7 +19,7 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
-  const { signup } = useAuth()
+  const { signUp } = useAuth()
   const router = useRouter()
 
   // Password strength check
@@ -38,7 +38,7 @@ export default function SignUpPage() {
 
     setLoading(true)
     try {
-      await signup(email, password, firstName, lastName)
+      await signUp(email, password, firstName, lastName)
       // Redirect to onboarding to complete profile
       router.push('/onboarding')
     } catch (error: any) {

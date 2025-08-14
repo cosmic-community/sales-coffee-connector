@@ -148,11 +148,12 @@ export class CosmicAuth {
       }
 
       // Check account status - handle both string values and object format
-      const accountStatus = typeof cosmicUser.metadata.account_status === 'object' 
-        ? cosmicUser.metadata.account_status?.value || cosmicUser.metadata.account_status?.key
-        : cosmicUser.metadata.account_status
+      const accountStatus = cosmicUser.metadata.account_status
+      const statusValue = typeof accountStatus === 'object' && accountStatus !== null 
+        ? (accountStatus as any).value || (accountStatus as any).key
+        : accountStatus
 
-      if (accountStatus !== 'active' && accountStatus !== 'Active') {
+      if (statusValue !== 'active' && statusValue !== 'Active') {
         throw new Error('Account is not active. Please contact support.')
       }
 
