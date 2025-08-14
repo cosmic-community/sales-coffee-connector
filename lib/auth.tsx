@@ -1,31 +1,20 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { SalesExecutive } from '@/types'
+import { AuthUser, AuthContextType } from '@/types'
 
-export interface AuthContextType {
-  user: SalesExecutive | null
-  login: (email: string, password: string) => Promise<boolean>
-  logout: () => void
-  signup: (email: string, password: string, firstName: string, lastName: string) => Promise<boolean>
-  updateProfile: (data: Partial<SalesExecutive>) => Promise<boolean>
-  isLoading: boolean
-  isAuthenticated: boolean
-}
-
-export const AuthContext = createContext<AuthContextType | null>(null)
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 interface AuthProviderProps {
   children: ReactNode
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<SalesExecutive | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  const isAuthenticated = !!user
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Check for existing session
     checkAuth()
   }, [])
 
@@ -39,13 +28,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (error) {
       console.error('Auth check failed:', error)
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string) => {
+    setLoading(true)
     try {
-      setIsLoading(true)
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -54,23 +43,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
         body: JSON.stringify({ email, password }),
       })
 
-      if (response.ok) {
-        const userData = await response.json()
-        setUser(userData)
-        return true
+      if (!response.ok) {
+        throw new Error('Login failed')
       }
-      return false
+
+      const userData = await response.json()
+      setUser(userData)
     } catch (error) {
-      console.error('Login failed:', error)
-      return false
+      console.error('Login error:', error)
+      throw error
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
-  const signup = async (email: string, password: string, firstName: string, lastName: string): Promise<boolean> => {
+  const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
+    setLoading(true)
     try {
-      setIsLoading(true)
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
@@ -79,33 +68,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
         body: JSON.stringify({ email, password, firstName, lastName }),
       })
 
-      if (response.ok) {
-        const userData = await response.json()
-        setUser(userData)
-        return true
+      if (!response.ok) {
+        throw new Error('Signup failed')
       }
-      return false
+
+      const userData = await response.json()
+      setUser(userData)
     } catch (error) {
-      console.error('Signup failed:', error)
-      return false
+      console.error('Signup error:', error)
+      throw error
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
   const logout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' })
-    } catch (error) {
-      console.error('Logout failed:', error)
-    } finally {
       setUser(null)
+    } catch (error) {
+      console.error('Logout error:', error)
     }
   }
 
-  const updateProfile = async (data: Partial<SalesExecutive>): Promise<boolean> => {
+  const updateProfile = async (data: Partial<AuthUser>) => {
     try {
-      setIsLoading(true)
       const response = await fetch('/api/users/update', {
         method: 'PUT',
         headers: {
@@ -114,40 +101,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
         body: JSON.stringify(data),
       })
 
-      if (response.ok) {
-        const updatedUser = await response.json()
-        setUser(updatedUser)
-        return true
+      if (!response.ok) {
+        throw new Error('Profile update failed')
       }
-      return false
+
+      const updatedUser = await response.json()
+      setUser(updatedUser)
     } catch (error) {
-      console.error('Profile update failed:', error)
-      return false
-    } finally {
-      setIsLoading(false)
+      console.error('Profile update error:', error)
+      throw error
     }
   }
 
-  const contextValue: AuthContextType = {
+  const value: AuthContextType = {
     user,
+    loading,
     login,
+    signUp,
     logout,
-    signup,
     updateProfile,
-    isLoading,
-    isAuthenticated,
   }
 
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext)
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider')
   }
   return context

@@ -7,10 +7,13 @@ interface AuthProviderProps {
   children: ReactNode
 }
 
-// Re-export the AuthProvider from lib/auth for backward compatibility
+// Default export for the component
 export default function AuthProvider({ children }: AuthProviderProps) {
   return <AuthProviderComponent>{children}</AuthProviderComponent>
 }
+
+// Named export for backward compatibility
+export { AuthProvider } from '@/lib/auth'
 
 // Also export the hook for convenience
 export { useAuth } from '@/lib/auth'
