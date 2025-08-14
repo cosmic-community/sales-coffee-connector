@@ -33,19 +33,11 @@ export default function SignUpPage() {
 
     setLoading(true)
     try {
-      // Fixed: signUp function call with proper error handling callbacks
-      const result = await signUp(
-        email, 
-        password,
-        () => {
-          // Success callback
-          router.push('/verify-email')
-        },
-        (error: string) => {
-          // Error callback
-          setError(error || 'Failed to create account')
-        }
-      )
+      // Fixed: signUp function call with proper parameters
+      const result = await signUp(email, password)
+      if (result) {
+        router.push('/verify-email')
+      }
     } catch (error: any) {
       setError(error.message || 'Failed to create account')
     } finally {
