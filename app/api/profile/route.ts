@@ -43,8 +43,8 @@ export async function PUT(request: NextRequest) {
     }
 
     // Ensure timezone and company_size have proper string values with explicit type safety
-    const timezone: string = body.timezone || 'EST'
-    const companySize: string = body.company_size || 'startup'
+    const timezone: string = (body.timezone as string) || 'EST'
+    const companySize: string = (body.company_size as string) || 'startup'
 
     // Transform form data to match Cosmic structure
     const updatedMetadata = {
