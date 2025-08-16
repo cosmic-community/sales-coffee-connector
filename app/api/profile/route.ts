@@ -42,10 +42,9 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
     }
 
-    // Ensure timezone and company_size have proper string values with explicit type safety
-    // Fix: Handle potentially undefined values by providing defaults
-    const timezone: string = (body.timezone as string) ?? 'EST'
-    const companySize: string = (body.company_size as string) ?? 'startup'
+    // Fix TypeScript errors by providing default values for potentially undefined strings
+    const timezone: string = body.timezone || 'EST'
+    const companySize: string = body.company_size || 'startup'
 
     // Transform form data to match Cosmic structure
     const updatedMetadata = {
