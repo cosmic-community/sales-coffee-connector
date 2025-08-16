@@ -50,7 +50,7 @@ export interface SalesExecutive extends CosmicObject {
     willing_to_mentor: boolean
     seeking_mentorship: boolean
     max_meetings_per_week: SelectDropdownValue
-    preferred_meeting_days?: string[] | undefined
+    preferred_meeting_days: string[] | null
     profile_completed: boolean
     account_status: SelectDropdownValue
   }

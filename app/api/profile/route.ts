@@ -48,14 +48,14 @@ export async function PUT(request: NextRequest) {
       job_title: body.job_title || '',
       years_in_sales: body.years_in_sales,
       linkedin_url: body.linkedin_url || '',
-      timezone: { key: body.timezone, value: getTimezoneLabel(body.timezone) },
-      company_size: { key: body.company_size, value: getCompanySizeLabel(body.company_size) },
+      timezone: { key: body.timezone || 'EST', value: getTimezoneLabel(body.timezone || 'EST') },
+      company_size: { key: body.company_size || 'startup', value: getCompanySizeLabel(body.company_size || 'startup') },
       annual_quota: body.annual_quota || 0,
       willing_to_mentor: body.willing_to_mentor,
       seeking_mentorship: body.seeking_mentorship,
       max_meetings_per_week: { 
-        key: body.max_meetings_per_week, 
-        value: `${body.max_meetings_per_week} meeting${body.max_meetings_per_week !== '1' ? 's' : ''} per week` 
+        key: body.max_meetings_per_week || '1', 
+        value: `${body.max_meetings_per_week || '1'} meeting${body.max_meetings_per_week !== '1' ? 's' : ''} per week` 
       },
       preferred_meeting_days: body.preferred_meeting_days || [],
       profile_completed: true

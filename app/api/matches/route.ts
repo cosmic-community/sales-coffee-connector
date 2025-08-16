@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuth } from '@/lib/auth'
-import { getSalesExecutives, getSalesExecutiveByAuthId } from '@/lib/cosmic'
+import { getSalesExecutives, getSalesExecutiveByAuthId, SalesExecutive } from '@/lib/cosmic'
 import { calculateMatchScore } from '@/utils/matching'
-import { SalesExecutive } from '@/types'
 
 export async function GET(request: NextRequest) {
   try {
