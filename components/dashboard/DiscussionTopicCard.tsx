@@ -1,7 +1,7 @@
 'use client'
 
 import { DiscussionTopic } from '@/types'
-import { Clock, Target, Bookmark, BookmarkCheck } from 'lucide-react'
+import { Clock, Target, Bookmark, Check } from 'lucide-react'
 import { useState } from 'react'
 
 interface DiscussionTopicCardProps {
@@ -42,7 +42,10 @@ export default function DiscussionTopicCard({ topic }: DiscussionTopicCardProps)
             className="ml-2 p-1 text-gray-400 hover:text-gray-600"
           >
             {bookmarked ? (
-              <BookmarkCheck className="h-5 w-5 text-blue-600" />
+              <div className="relative">
+                <Bookmark className="h-5 w-5 text-blue-600" />
+                <Check className="h-3 w-3 text-white absolute top-0.5 left-0.5" />
+              </div>
             ) : (
               <Bookmark className="h-5 w-5" />
             )}

@@ -5,10 +5,14 @@ import { calculateMatchScore } from '@/utils/matching'
 
 export async function GET(request: NextRequest) {
   try {
-    const { user } = await verifyAuth(request)
+    const auth = await verifyAuth(request)
+    
+    if (!auth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     
     // Get current user's profile
-    const currentUserProfile = await getSalesExecutiveByAuthId(user.uid)
+    const currentUserProfile = await getSalesExecutiveByAuthId(auth.userId)
     if (!currentUserProfile) {
       return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
     }

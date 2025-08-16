@@ -4,9 +4,13 @@ import { getSalesExecutiveByAuthId, updateSalesExecutive } from '@/lib/cosmic'
 
 export async function GET(request: NextRequest) {
   try {
-    const { user } = await verifyAuth(request)
+    const auth = await verifyAuth(request)
     
-    const profile = await getSalesExecutiveByAuthId(user.uid)
+    if (!auth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    
+    const profile = await getSalesExecutiveByAuthId(auth.userId)
     
     if (!profile) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
@@ -24,11 +28,16 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { user } = await verifyAuth(request)
+    const auth = await verifyAuth(request)
+    
+    if (!auth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    
     const body = await request.json()
     
     // Get current profile
-    const currentProfile = await getSalesExecutiveByAuthId(user.uid)
+    const currentProfile = await getSalesExecutiveByAuthId(auth.userId)
     if (!currentProfile) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
     }

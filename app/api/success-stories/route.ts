@@ -4,7 +4,11 @@ import { cosmic } from '@/lib/cosmic'
 
 export async function GET(request: NextRequest) {
   try {
-    const { user } = await verifyAuth(request)
+    const auth = await verifyAuth(request)
+    
+    if (!auth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     
     const { objects: stories } = await cosmic.objects
       .find({ 
