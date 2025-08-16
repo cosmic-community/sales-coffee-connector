@@ -42,10 +42,10 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
     }
 
-    // Fix TypeScript errors by providing proper type checking and default values
-    const timezone = typeof body.timezone === 'string' ? body.timezone : 'EST'
-    const companySize = typeof body.company_size === 'string' ? body.company_size : 'startup'
-    const maxMeetingsPerWeek = typeof body.max_meetings_per_week === 'string' ? body.max_meetings_per_week : '1'
+    // Fix TypeScript errors by ensuring string types with proper defaults and type assertions
+    const timezone: string = typeof body.timezone === 'string' ? body.timezone : 'EST'
+    const companySize: string = typeof body.company_size === 'string' ? body.company_size : 'startup'
+    const maxMeetingsPerWeek: string = typeof body.max_meetings_per_week === 'string' ? body.max_meetings_per_week : '1'
 
     // Transform form data to match Cosmic structure
     const updatedMetadata = {
