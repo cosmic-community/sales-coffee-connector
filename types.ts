@@ -36,7 +36,11 @@ export interface SalesExecutive extends CosmicObject {
     last_name: string
     email: string
     password_hash: string
-    profile_photo?: any
+    profile_photo?: {
+      imgix_url: string
+      url: string
+      alt?: string
+    } | null
     company_name: string
     job_title: string
     years_in_sales: number

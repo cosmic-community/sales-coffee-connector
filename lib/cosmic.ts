@@ -1,56 +1,11 @@
 import { createBucketClient } from '@cosmicjs/sdk'
+import { SalesExecutive } from '@/types'
 
 const cosmic = createBucketClient({
   bucketSlug: process.env.COSMIC_BUCKET_SLUG as string,
   readKey: process.env.COSMIC_READ_KEY as string,
   writeKey: process.env.COSMIC_WRITE_KEY as string,
 })
-
-export interface SalesExecutive {
-  id: string
-  title: string
-  slug: string
-  metadata: {
-    auth_user_id: string
-    first_name: string
-    last_name: string
-    email: string
-    password_hash: string
-    profile_photo?: {
-      imgix_url: string
-      url: string
-      alt?: string
-    } | null
-    company_name: string
-    job_title: string
-    years_in_sales: number
-    linkedin_url?: string
-    timezone: {
-      key: string
-      value: string
-    }
-    industries: any[]
-    company_size: {
-      key: string
-      value: string
-    }
-    annual_quota: number
-    expertise_areas: any[]
-    learning_goals: any[]
-    willing_to_mentor: boolean
-    seeking_mentorship: boolean
-    max_meetings_per_week: {
-      key: string
-      value: string
-    }
-    preferred_meeting_days: string[] | null
-    profile_completed: boolean
-    account_status: {
-      key: string
-      value: string
-    }
-  }
-}
 
 // Create a new sales executive
 export async function createSalesExecutive(data: {
@@ -134,7 +89,7 @@ export async function getSalesExecutiveByAuthId(authUserId: string): Promise<Sal
       .depth(1)
 
     const executives = response.objects as SalesExecutive[]
-    return executives.length > 0 ? executives[0] : null
+    return executives && executives.length > 0 ? executives[0] : null
   } catch (error: unknown) {
     const cosmicError = error as { status?: number }
     if (cosmicError.status === 404) {
@@ -157,7 +112,7 @@ export async function getSalesExecutiveByEmail(email: string): Promise<SalesExec
       .depth(1)
 
     const executives = response.objects as SalesExecutive[]
-    return executives.length > 0 ? executives[0] : null
+    return executives && executives.length > 0 ? executives[0] : null
   } catch (error: unknown) {
     const cosmicError = error as { status?: number }
     if (cosmicError.status === 404) {
@@ -219,4 +174,5 @@ export async function getIndustries() {
   }
 }
 
+export { SalesExecutive }
 export default cosmic

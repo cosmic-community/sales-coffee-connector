@@ -44,10 +44,10 @@ export async function PUT(request: NextRequest) {
 
     // Transform form data to match Cosmic structure
     const updatedMetadata = {
-      company_name: body.company_name || '',
-      job_title: body.job_title || '',
+      company_name: body.company_name || currentProfile.metadata.company_name,
+      job_title: body.job_title || currentProfile.metadata.job_title,
       years_in_sales: body.years_in_sales,
-      linkedin_url: body.linkedin_url || '',
+      linkedin_url: body.linkedin_url || currentProfile.metadata.linkedin_url || '',
       timezone: { key: body.timezone || 'EST', value: getTimezoneLabel(body.timezone || 'EST') },
       company_size: { key: body.company_size || 'startup', value: getCompanySizeLabel(body.company_size || 'startup') },
       annual_quota: body.annual_quota || 0,
@@ -57,7 +57,7 @@ export async function PUT(request: NextRequest) {
         key: body.max_meetings_per_week || '1', 
         value: `${body.max_meetings_per_week || '1'} meeting${body.max_meetings_per_week !== '1' ? 's' : ''} per week` 
       },
-      preferred_meeting_days: body.preferred_meeting_days || [],
+      preferred_meeting_days: body.preferred_meeting_days || null,
       profile_completed: true
     }
 
