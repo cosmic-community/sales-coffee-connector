@@ -43,9 +43,9 @@ export async function PUT(request: NextRequest) {
     }
 
     // Fix TypeScript errors by ensuring string types with proper validation and fallbacks
-    const timezone = (typeof body.timezone === 'string' && body.timezone.trim()) ? body.timezone.trim() : 'EST'
-    const companySize = (typeof body.company_size === 'string' && body.company_size.trim()) ? body.company_size.trim() : 'startup'
-    const maxMeetingsPerWeek = (typeof body.max_meetings_per_week === 'string' && body.max_meetings_per_week.trim()) ? body.max_meetings_per_week.trim() : '1'
+    const timezone: string = (typeof body.timezone === 'string' && body.timezone.trim()) ? body.timezone.trim() : 'EST'
+    const companySize: string = (typeof body.company_size === 'string' && body.company_size.trim()) ? body.company_size.trim() : 'startup'
+    const maxMeetingsPerWeek: string = (typeof body.max_meetings_per_week === 'string' && body.max_meetings_per_week.trim()) ? body.max_meetings_per_week.trim() : '1'
 
     // Transform form data to match Cosmic structure
     const updatedMetadata = {
