@@ -2,6 +2,8 @@
 
 import { createContext, useState, useEffect, ReactNode } from 'react'
 import { AuthUser, AuthContextType } from '@/types'
+import { NextRequest } from 'next/server'
+import { jwtVerify } from 'jose'
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -123,4 +125,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+
+// Server-side authentication verification function
+export async function verifyAuth(request: NextRequest): Promise<{ userId: string } | null> {
+  try {
+    // Get token from Authorization header or cookie
+    const authHeader = request.headers.get('Authorization')
+    let token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null
+    
+    if (!token) {
+      token = request.cookies.get('auth-token')?.value || null
+    }
+
+    if (!token) {
+      return null
+    }
+
+    const secret = new TextEncoder().encode(
+      process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || 'fallback-secret'
+    )
+    
+    const { payload } = await jwtVerify(token, secret)
+    
+    return { userId: payload.id as string }
+  } catch (error) {
+    console.error('Auth verification failed:', error)
+    return null
+  }
 }
