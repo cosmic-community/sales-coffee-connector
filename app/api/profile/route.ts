@@ -43,9 +43,9 @@ export async function PUT(request: NextRequest) {
     }
 
     // Fix TypeScript errors by providing default values for potentially undefined strings
-    const timezone: string = body.timezone ?? 'EST'
-    const companySize: string = body.company_size ?? 'startup'
-    const maxMeetingsPerWeek: string = body.max_meetings_per_week ?? '1'
+    const timezone: string = body.timezone || 'EST'
+    const companySize: string = body.company_size || 'startup'
+    const maxMeetingsPerWeek: string = body.max_meetings_per_week || '1'
 
     // Transform form data to match Cosmic structure
     const updatedMetadata = {
@@ -91,7 +91,7 @@ function getTimezoneLabel(key: string): string {
     GMT: 'Greenwich Mean Time (UTC+0)',
     CET: 'Central European Time (UTC+1)'
   }
-  return timezones[key] ?? timezones.EST
+  return timezones[key] || timezones.EST
 }
 
 function getCompanySizeLabel(key: string): string {
@@ -101,5 +101,5 @@ function getCompanySizeLabel(key: string): string {
     midmarket: 'Mid-market (200-1000 employees)',
     enterprise: 'Enterprise (1000+ employees)'
   }
-  return sizes[key] ?? sizes.startup
+  return sizes[key] || sizes.startup
 }
