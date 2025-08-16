@@ -75,7 +75,11 @@ export default function MatchCard({ match }: MatchCardProps) {
           {match.metadata?.timezone && (
             <div className="flex items-center text-sm text-gray-600">
               <Clock className="h-4 w-4 mr-2" />
-              <span>{match.metadata.timezone.value || match.metadata.timezone}</span>
+              <span>
+                {typeof match.metadata.timezone === 'string' 
+                  ? match.metadata.timezone 
+                  : match.metadata.timezone.value || match.metadata.timezone.key}
+              </span>
             </div>
           )}
           

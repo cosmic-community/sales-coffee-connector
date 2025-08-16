@@ -79,9 +79,15 @@ export default function DiscussionTopicCard({ topic }: DiscussionTopicCardProps)
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {topic.metadata?.difficulty_level && (
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(topic.metadata.difficulty_level.key || topic.metadata.difficulty_level.value)}`}>
+              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(
+                typeof topic.metadata.difficulty_level === 'string' 
+                  ? topic.metadata.difficulty_level 
+                  : topic.metadata.difficulty_level.key || topic.metadata.difficulty_level.value
+              )}`}>
                 <Target className="h-3 w-3 mr-1" />
-                {topic.metadata.difficulty_level.value || topic.metadata.difficulty_level}
+                {typeof topic.metadata.difficulty_level === 'string' 
+                  ? topic.metadata.difficulty_level 
+                  : topic.metadata.difficulty_level.value || topic.metadata.difficulty_level.key}
               </span>
             )}
             

@@ -3,7 +3,7 @@
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Users, Coffee, Calendar, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react'
+import { Users, Coffee, Calendar, TrendingUp, AlertCircle, Trophy } from 'lucide-react'
 import Link from 'next/link'
 
 interface DashboardStats {
