@@ -1,5 +1,5 @@
 import { createBucketClient } from '@cosmicjs/sdk'
-import { SalesExecutive } from '@/types'
+import type { SalesExecutive } from '@/types'
 
 const cosmic = createBucketClient({
   bucketSlug: process.env.COSMIC_BUCKET_SLUG as string,
@@ -89,7 +89,7 @@ export async function getSalesExecutiveByAuthId(authUserId: string): Promise<Sal
       .depth(1)
 
     const executives = response.objects as SalesExecutive[]
-    return executives && executives.length > 0 ? executives[0] : null
+    return (executives && executives.length > 0 ? executives[0] : null) ?? null
   } catch (error: unknown) {
     const cosmicError = error as { status?: number }
     if (cosmicError.status === 404) {
@@ -112,7 +112,7 @@ export async function getSalesExecutiveByEmail(email: string): Promise<SalesExec
       .depth(1)
 
     const executives = response.objects as SalesExecutive[]
-    return executives && executives.length > 0 ? executives[0] : null
+    return (executives && executives.length > 0 ? executives[0] : null) ?? null
   } catch (error: unknown) {
     const cosmicError = error as { status?: number }
     if (cosmicError.status === 404) {
@@ -174,5 +174,5 @@ export async function getIndustries() {
   }
 }
 
-export { SalesExecutive }
+export type { SalesExecutive }
 export default cosmic

@@ -86,7 +86,7 @@ function getTimezoneLabel(key: string): string {
     GMT: 'Greenwich Mean Time (UTC+0)',
     CET: 'Central European Time (UTC+1)'
   }
-  return timezones[key] || timezones.EST
+  return timezones[key] ?? timezones.EST
 }
 
 function getCompanySizeLabel(key: string): string {
@@ -96,5 +96,5 @@ function getCompanySizeLabel(key: string): string {
     midmarket: 'Mid-market (200-1000 employees)',
     enterprise: 'Enterprise (1000+ employees)'
   }
-  return sizes[key] || sizes.startup
+  return sizes[key] ?? sizes.startup
 }
