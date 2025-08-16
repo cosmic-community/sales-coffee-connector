@@ -53,8 +53,14 @@ export async function PUT(request: NextRequest) {
       job_title: body.job_title || currentProfile.metadata.job_title,
       years_in_sales: body.years_in_sales,
       linkedin_url: body.linkedin_url || currentProfile.metadata.linkedin_url || '',
-      timezone: { key: timezone, value: getTimezoneLabel(timezone) },
-      company_size: { key: companySize, value: getCompanySizeLabel(companySize) },
+      timezone: { 
+        key: timezone, 
+        value: getTimezoneLabel(timezone) 
+      },
+      company_size: { 
+        key: companySize, 
+        value: getCompanySizeLabel(companySize) 
+      },
       annual_quota: body.annual_quota || 0,
       willing_to_mentor: body.willing_to_mentor,
       seeking_mentorship: body.seeking_mentorship,
