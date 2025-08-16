@@ -43,8 +43,9 @@ export async function PUT(request: NextRequest) {
     }
 
     // Fix TypeScript errors by providing default values for potentially undefined strings
-    const timezone: string = body.timezone || 'EST'
-    const companySize: string = body.company_size || 'startup'
+    const timezone: string = body.timezone ?? 'EST'
+    const companySize: string = body.company_size ?? 'startup'
+    const maxMeetingsPerWeek: string = body.max_meetings_per_week ?? '1'
 
     // Transform form data to match Cosmic structure
     const updatedMetadata = {
@@ -58,8 +59,8 @@ export async function PUT(request: NextRequest) {
       willing_to_mentor: body.willing_to_mentor,
       seeking_mentorship: body.seeking_mentorship,
       max_meetings_per_week: { 
-        key: body.max_meetings_per_week || '1', 
-        value: `${body.max_meetings_per_week || '1'} meeting${body.max_meetings_per_week !== '1' ? 's' : ''} per week` 
+        key: maxMeetingsPerWeek, 
+        value: `${maxMeetingsPerWeek} meeting${maxMeetingsPerWeek !== '1' ? 's' : ''} per week` 
       },
       preferred_meeting_days: body.preferred_meeting_days || null,
       profile_completed: true
