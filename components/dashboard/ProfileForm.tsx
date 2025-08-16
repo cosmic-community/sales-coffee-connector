@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { AuthUser } from '@/types'
-import { Save, Loader2, User, Building, Target, Clock } from 'lucide-react'
+import { Save, Loader2, User, Building, Target, Clock, CheckCircle } from 'lucide-react'
 
 interface ProfileFormProps {
   user: AuthUser
@@ -40,6 +40,41 @@ export default function ProfileForm({ user }: ProfileFormProps) {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [messageType, setMessageType] = useState<'success' | 'error'>('success')
+  const [initialLoading, setInitialLoading] = useState(true)
+
+  // Load existing profile data
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const response = await fetch('/api/profile')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.profile?.metadata) {
+            const metadata = data.profile.metadata
+            setFormData({
+              company_name: metadata.company_name || '',
+              job_title: metadata.job_title || '',
+              years_in_sales: metadata.years_in_sales || 0,
+              linkedin_url: metadata.linkedin_url || '',
+              timezone: metadata.timezone?.key || 'EST',
+              company_size: metadata.company_size?.key || 'startup',
+              annual_quota: metadata.annual_quota || 0,
+              willing_to_mentor: metadata.willing_to_mentor || false,
+              seeking_mentorship: metadata.seeking_mentorship || false,
+              max_meetings_per_week: metadata.max_meetings_per_week?.key || '2',
+              preferred_meeting_days: metadata.preferred_meeting_days || []
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error)
+      } finally {
+        setInitialLoading(false)
+      }
+    }
+
+    loadProfile()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,15 +90,22 @@ export default function ProfileForm({ user }: ProfileFormProps) {
         body: JSON.stringify(formData),
       })
 
+      const data = await response.json()
+
       if (response.ok) {
-        setMessage('Profile updated successfully!')
+        setMessage('Profile saved successfully!')
         setMessageType('success')
+        // Clear message after 5 seconds
+        setTimeout(() => setMessage(''), 5000)
       } else {
-        throw new Error('Failed to update profile')
+        throw new Error(data.error || 'Failed to update profile')
       }
     } catch (error) {
-      setMessage('Failed to update profile. Please try again.')
+      console.error('Profile update error:', error)
+      setMessage(error instanceof Error ? error.message : 'Failed to update profile. Please try again.')
       setMessageType('error')
+      // Clear error message after 5 seconds
+      setTimeout(() => setMessage(''), 5000)
     } finally {
       setLoading(false)
     }
@@ -85,8 +127,42 @@ export default function ProfileForm({ user }: ProfileFormProps) {
     }))
   }
 
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    )
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
+      {/* Success/Error Message */}
+      {message && (
+        <div className={`rounded-md p-4 ${
+          messageType === 'success' 
+            ? 'bg-green-50 border border-green-200' 
+            : 'bg-red-50 border border-red-200'
+        }`}>
+          <div className="flex">
+            <div className="flex-shrink-0">
+              {messageType === 'success' ? (
+                <CheckCircle className="h-5 w-5 text-green-400" />
+              ) : (
+                <div className="h-5 w-5 text-red-400">⚠</div>
+              )}
+            </div>
+            <div className="ml-3">
+              <p className={`text-sm font-medium ${
+                messageType === 'success' ? 'text-green-800' : 'text-red-800'
+              }`}>
+                {message}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Basic Information */}
       <div className="bg-white shadow rounded-lg">
         <div className="px-4 py-5 sm:p-6">
@@ -105,7 +181,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
                 required
                 value={formData.company_name}
                 onChange={(e) => handleInputChange('company_name', e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
               />
             </div>
             
@@ -118,7 +194,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
                 required
                 value={formData.job_title}
                 onChange={(e) => handleInputChange('job_title', e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
               />
             </div>
             
@@ -130,9 +206,10 @@ export default function ProfileForm({ user }: ProfileFormProps) {
                 type="number"
                 required
                 min="0"
+                max="50"
                 value={formData.years_in_sales}
-                onChange={(e) => handleInputChange('years_in_sales', parseInt(e.target.value))}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                onChange={(e) => handleInputChange('years_in_sales', parseInt(e.target.value) || 0)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
               />
             </div>
             
@@ -145,7 +222,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
                 value={formData.linkedin_url}
                 onChange={(e) => handleInputChange('linkedin_url', e.target.value)}
                 placeholder="https://linkedin.com/in/yourname"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
               />
             </div>
           </div>
@@ -169,7 +246,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
                 required
                 value={formData.company_size}
                 onChange={(e) => handleInputChange('company_size', e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
               >
                 <option value="startup">Startup (1-50 employees)</option>
                 <option value="smb">Small Business (50-200 employees)</option>
@@ -185,10 +262,10 @@ export default function ProfileForm({ user }: ProfileFormProps) {
               <input
                 type="number"
                 min="0"
-                value={formData.annual_quota}
+                value={formData.annual_quota || ''}
                 onChange={(e) => handleInputChange('annual_quota', parseInt(e.target.value) || 0)}
                 placeholder="e.g. 1000000"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
               />
             </div>
           </div>
@@ -212,7 +289,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
                 required
                 value={formData.timezone}
                 onChange={(e) => handleInputChange('timezone', e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
               >
                 <option value="EST">Eastern Time (UTC-5)</option>
                 <option value="CST">Central Time (UTC-6)</option>
@@ -231,7 +308,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
                 required
                 value={formData.max_meetings_per_week}
                 onChange={(e) => handleInputChange('max_meetings_per_week', e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
               >
                 <option value="1">1 meeting per week</option>
                 <option value="2">2 meetings per week</option>
@@ -305,30 +382,21 @@ export default function ProfileForm({ user }: ProfileFormProps) {
         </div>
       </div>
 
-      {/* Message */}
-      {message && (
-        <div className={`rounded-md p-4 ${
-          messageType === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-        }`}>
-          {message}
-        </div>
-      )}
-
       {/* Submit Button */}
       <div className="flex justify-end">
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             <>
-              <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-              Saving...
+              <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5" />
+              Saving Profile...
             </>
           ) : (
             <>
-              <Save className="-ml-1 mr-2 h-4 w-4" />
+              <Save className="-ml-1 mr-3 h-5 w-5" />
               Save Profile
             </>
           )}

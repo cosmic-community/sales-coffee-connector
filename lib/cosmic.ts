@@ -1,175 +1,199 @@
 import { createBucketClient } from '@cosmicjs/sdk'
-import { SalesExecutive, CosmicObject, Skill, Industry, MatchingSession } from '@/types'
 
 const cosmic = createBucketClient({
   bucketSlug: process.env.COSMIC_BUCKET_SLUG as string,
   readKey: process.env.COSMIC_READ_KEY as string,
   writeKey: process.env.COSMIC_WRITE_KEY as string,
-  apiEnvironment: 'staging'
 })
 
-// Helper function to transform Cosmic object to include computed properties
-function transformSalesExecutive(cosmicObject: any): SalesExecutive {
-  return {
-    ...cosmicObject,
-    firstName: cosmicObject.metadata?.first_name,
-    email: cosmicObject.metadata?.email,
+export interface SalesExecutive {
+  id: string
+  title: string
+  slug: string
+  metadata: {
+    auth_user_id: string
+    first_name: string
+    last_name: string
+    email: string
+    password_hash: string
+    profile_photo?: {
+      imgix_url: string
+      url: string
+      alt?: string
+    } | null
+    company_name: string
+    job_title: string
+    years_in_sales: number
+    linkedin_url?: string
+    timezone: {
+      key: string
+      value: string
+    }
+    industries: any[]
+    company_size: {
+      key: string
+      value: string
+    }
+    annual_quota: number
+    expertise_areas: any[]
+    learning_goals: any[]
+    willing_to_mentor: boolean
+    seeking_mentorship: boolean
+    max_meetings_per_week: {
+      key: string
+      value: string
+    }
+    preferred_meeting_days: string[] | null
+    profile_completed: boolean
+    account_status: {
+      key: string
+      value: string
+    }
   }
 }
 
-export async function getSalesExecutives(): Promise<SalesExecutive[]> {
+// Create a new sales executive
+export async function createSalesExecutive(data: {
+  title: string
+  auth_user_id: string
+  first_name: string
+  last_name: string
+  email: string
+  password_hash: string
+  company_name: string
+  job_title: string
+  years_in_sales: number
+  timezone: { key: string; value: string }
+  company_size: { key: string; value: string }
+  max_meetings_per_week: { key: string; value: string }
+  account_status: { key: string; value: string }
+}) {
   try {
-    const { objects } = await cosmic.objects
-      .find({ type: 'sales-executives' })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-    
-    return objects.map(transformSalesExecutive)
-  } catch (error: unknown) {
-    const cosmicError = error as { status?: number }
-    if (cosmicError.status === 404) {
-      return []
-    }
+    const response = await cosmic.objects.insertOne({
+      title: data.title,
+      type: 'sales-executives',
+      metadata: {
+        auth_user_id: data.auth_user_id,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email,
+        password_hash: data.password_hash,
+        company_name: data.company_name,
+        job_title: data.job_title,
+        years_in_sales: data.years_in_sales,
+        linkedin_url: '',
+        timezone: data.timezone,
+        industries: [],
+        company_size: data.company_size,
+        annual_quota: 0,
+        expertise_areas: [],
+        learning_goals: [],
+        willing_to_mentor: false,
+        seeking_mentorship: false,
+        max_meetings_per_week: data.max_meetings_per_week,
+        preferred_meeting_days: null,
+        profile_completed: false,
+        account_status: data.account_status
+      }
+    })
+    return response.object as SalesExecutive
+  } catch (error) {
+    console.error('Error creating sales executive:', error)
     throw error
   }
 }
 
-export async function getSalesExecutiveByEmail(email: string): Promise<SalesExecutive | null> {
-  try {
-    const { object } = await cosmic.objects
-      .findOne({ type: 'sales-executives', 'metadata.email': email })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-    
-    return transformSalesExecutive(object)
-  } catch (error: unknown) {
-    const cosmicError = error as { status?: number }
-    if (cosmicError.status === 404) {
-      return null
-    }
-    throw error
-  }
-}
-
+// Get sales executive by auth user ID
 export async function getSalesExecutiveByAuthId(authUserId: string): Promise<SalesExecutive | null> {
   try {
-    const { object } = await cosmic.objects
-      .findOne({ type: 'sales-executives', 'metadata.auth_user_id': authUserId })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-    
-    return transformSalesExecutive(object)
-  } catch (error: unknown) {
-    const cosmicError = error as { status?: number }
-    if (cosmicError.status === 404) {
-      return null
-    }
-    throw error
-  }
-}
-
-export async function getSkills(): Promise<Skill[]> {
-  try {
-    const { objects } = await cosmic.objects
-      .find({ type: 'skills' })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-    
-    return objects as Skill[]
-  } catch (error: unknown) {
-    const cosmicError = error as { status?: number }
-    if (cosmicError.status === 404) {
-      return []
-    }
-    throw error
-  }
-}
-
-export async function getIndustries(): Promise<Industry[]> {
-  try {
-    const { objects } = await cosmic.objects
-      .find({ type: 'industries' })
-      .props(['id', 'title', 'slug', 'metadata'])
-      .depth(1)
-    
-    return objects as Industry[]
-  } catch (error: unknown) {
-    const cosmicError = error as { status?: number }
-    if (cosmicError.status === 404) {
-      return []
-    }
-    throw error
-  }
-}
-
-export async function getUserSessions(userId: string): Promise<MatchingSession[]> {
-  try {
-    const { objects } = await cosmic.objects
-      .find({ 
-        type: 'matching-sessions',
-        $or: [
-          { 'metadata.participant_1': userId },
-          { 'metadata.participant_2': userId }
-        ]
+    const response = await cosmic.objects
+      .find({
+        type: 'sales-executives',
+        'metadata.auth_user_id': authUserId
       })
       .props(['id', 'title', 'slug', 'metadata'])
       .depth(1)
-    
-    return objects as MatchingSession[]
-  } catch (error: unknown) {
-    const cosmicError = error as { status?: number }
-    if (cosmicError.status === 404) {
-      return []
+
+    const executives = response.objects as SalesExecutive[]
+    return executives.length > 0 ? executives[0] : null
+  } catch (error) {
+    if (error.status === 404) {
+      return null
     }
+    console.error('Error getting sales executive by auth ID:', error)
     throw error
   }
 }
 
-export async function createSalesExecutive(data: {
-  email: string;
-  password_hash: string;
-  first_name: string;
-  last_name: string;
-  auth_user_id: string;
-}): Promise<SalesExecutive> {
-  const { object } = await cosmic.objects.insertOne({
-    title: `${data.first_name} ${data.last_name}`,
-    type: 'sales-executives',
-    status: 'published',
-    metadata: {
-      email: data.email,
-      password_hash: data.password_hash,
-      first_name: data.first_name,
-      last_name: data.last_name,
-      auth_user_id: data.auth_user_id,
-      profile_completed: false,
-      account_status: { key: 'active', value: 'Active' },
-      years_in_sales: 0,
-      annual_quota: 0,
-      willing_to_mentor: false,
-      seeking_mentorship: false,
-      max_meetings_per_week: { key: '2', value: '2 meetings per week' },
-      timezone: { key: 'EST', value: 'Eastern Time (UTC-5)' },
-      company_size: { key: 'startup', value: 'Startup (1-50 employees)' },
-      industries: [],
-      expertise_areas: [],
-      learning_goals: [],
-      preferred_meeting_days: []
+// Get sales executive by email
+export async function getSalesExecutiveByEmail(email: string): Promise<SalesExecutive | null> {
+  try {
+    const response = await cosmic.objects
+      .find({
+        type: 'sales-executives',
+        'metadata.email': email
+      })
+      .props(['id', 'title', 'slug', 'metadata'])
+      .depth(1)
+
+    const executives = response.objects as SalesExecutive[]
+    return executives.length > 0 ? executives[0] : null
+  } catch (error) {
+    if (error.status === 404) {
+      return null
     }
-  })
-
-  return transformSalesExecutive(object)
+    console.error('Error getting sales executive by email:', error)
+    throw error
+  }
 }
 
-export async function updateSalesExecutive(
-  id: string,
-  metadata: Partial<SalesExecutive['metadata']>
-): Promise<SalesExecutive> {
-  const { object } = await cosmic.objects.updateOne(id, {
-    metadata
-  })
-
-  return transformSalesExecutive(object)
+// Update sales executive
+export async function updateSalesExecutive(id: string, metadata: Partial<SalesExecutive['metadata']>) {
+  try {
+    const response = await cosmic.objects.updateOne(id, {
+      metadata: metadata
+    })
+    return response.object as SalesExecutive
+  } catch (error) {
+    console.error('Error updating sales executive:', error)
+    throw error
+  }
 }
 
-export { cosmic }
+// Get all skills for form options
+export async function getSkills() {
+  try {
+    const response = await cosmic.objects
+      .find({ type: 'skills' })
+      .props(['id', 'title', 'slug', 'metadata'])
+      .depth(1)
+
+    return response.objects || []
+  } catch (error) {
+    if (error.status === 404) {
+      return []
+    }
+    console.error('Error getting skills:', error)
+    throw error
+  }
+}
+
+// Get all industries for form options
+export async function getIndustries() {
+  try {
+    const response = await cosmic.objects
+      .find({ type: 'industries' })
+      .props(['id', 'title', 'slug', 'metadata'])
+      .depth(1)
+
+    return response.objects || []
+  } catch (error) {
+    if (error.status === 404) {
+      return []
+    }
+    console.error('Error getting industries:', error)
+    throw error
+  }
+}
+
+export default cosmic

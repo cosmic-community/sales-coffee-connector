@@ -42,11 +42,27 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
     }
 
-    // Update profile with new data
-    const updatedProfile = await updateSalesExecutive(currentProfile.id, {
-      ...body,
+    // Transform form data to match Cosmic structure
+    const updatedMetadata = {
+      company_name: body.company_name,
+      job_title: body.job_title,
+      years_in_sales: body.years_in_sales,
+      linkedin_url: body.linkedin_url || '',
+      timezone: { key: body.timezone, value: getTimezoneLabel(body.timezone) },
+      company_size: { key: body.company_size, value: getCompanySizeLabel(body.company_size) },
+      annual_quota: body.annual_quota || 0,
+      willing_to_mentor: body.willing_to_mentor,
+      seeking_mentorship: body.seeking_mentorship,
+      max_meetings_per_week: { 
+        key: body.max_meetings_per_week, 
+        value: `${body.max_meetings_per_week} meeting${body.max_meetings_per_week !== '1' ? 's' : ''} per week` 
+      },
+      preferred_meeting_days: body.preferred_meeting_days || [],
       profile_completed: true
-    })
+    }
+
+    // Update profile with new data
+    const updatedProfile = await updateSalesExecutive(currentProfile.id, updatedMetadata)
 
     return NextResponse.json({ 
       message: 'Profile updated successfully',
@@ -59,4 +75,26 @@ export async function PUT(request: NextRequest) {
       { status: 500 }
     )
   }
+}
+
+function getTimezoneLabel(key: string): string {
+  const timezones: Record<string, string> = {
+    EST: 'Eastern Time (UTC-5)',
+    CST: 'Central Time (UTC-6)',
+    MST: 'Mountain Time (UTC-7)',
+    PST: 'Pacific Time (UTC-8)',
+    GMT: 'Greenwich Mean Time (UTC+0)',
+    CET: 'Central European Time (UTC+1)'
+  }
+  return timezones[key] || timezones.EST
+}
+
+function getCompanySizeLabel(key: string): string {
+  const sizes: Record<string, string> = {
+    startup: 'Startup (1-50 employees)',
+    smb: 'Small Business (50-200 employees)',
+    midmarket: 'Mid-market (200-1000 employees)',
+    enterprise: 'Enterprise (1000+ employees)'
+  }
+  return sizes[key] || sizes.startup
 }
