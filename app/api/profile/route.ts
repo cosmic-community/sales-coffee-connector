@@ -42,14 +42,18 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
     }
 
+    // Ensure timezone and company_size have default values to prevent undefined errors
+    const timezone = body.timezone || 'EST'
+    const companySize = body.company_size || 'startup'
+
     // Transform form data to match Cosmic structure
     const updatedMetadata = {
       company_name: body.company_name || currentProfile.metadata.company_name,
       job_title: body.job_title || currentProfile.metadata.job_title,
       years_in_sales: body.years_in_sales,
       linkedin_url: body.linkedin_url || currentProfile.metadata.linkedin_url || '',
-      timezone: { key: body.timezone || 'EST', value: getTimezoneLabel(body.timezone || 'EST') },
-      company_size: { key: body.company_size || 'startup', value: getCompanySizeLabel(body.company_size || 'startup') },
+      timezone: { key: timezone, value: getTimezoneLabel(timezone) },
+      company_size: { key: companySize, value: getCompanySizeLabel(companySize) },
       annual_quota: body.annual_quota || 0,
       willing_to_mentor: body.willing_to_mentor,
       seeking_mentorship: body.seeking_mentorship,
