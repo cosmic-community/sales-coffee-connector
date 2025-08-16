@@ -103,6 +103,25 @@ export async function createSalesExecutive(data: {
   }
 }
 
+// Get all sales executives
+export async function getSalesExecutives(): Promise<SalesExecutive[]> {
+  try {
+    const response = await cosmic.objects
+      .find({ type: 'sales-executives' })
+      .props(['id', 'title', 'slug', 'metadata'])
+      .depth(1)
+
+    return response.objects as SalesExecutive[] || []
+  } catch (error: unknown) {
+    const cosmicError = error as { status?: number }
+    if (cosmicError.status === 404) {
+      return []
+    }
+    console.error('Error getting sales executives:', error)
+    throw error
+  }
+}
+
 // Get sales executive by auth user ID
 export async function getSalesExecutiveByAuthId(authUserId: string): Promise<SalesExecutive | null> {
   try {
@@ -116,8 +135,9 @@ export async function getSalesExecutiveByAuthId(authUserId: string): Promise<Sal
 
     const executives = response.objects as SalesExecutive[]
     return executives.length > 0 ? executives[0] : null
-  } catch (error) {
-    if (error.status === 404) {
+  } catch (error: unknown) {
+    const cosmicError = error as { status?: number }
+    if (cosmicError.status === 404) {
       return null
     }
     console.error('Error getting sales executive by auth ID:', error)
@@ -138,8 +158,9 @@ export async function getSalesExecutiveByEmail(email: string): Promise<SalesExec
 
     const executives = response.objects as SalesExecutive[]
     return executives.length > 0 ? executives[0] : null
-  } catch (error) {
-    if (error.status === 404) {
+  } catch (error: unknown) {
+    const cosmicError = error as { status?: number }
+    if (cosmicError.status === 404) {
       return null
     }
     console.error('Error getting sales executive by email:', error)
@@ -154,7 +175,7 @@ export async function updateSalesExecutive(id: string, metadata: Partial<SalesEx
       metadata: metadata
     })
     return response.object as SalesExecutive
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error updating sales executive:', error)
     throw error
   }
@@ -169,8 +190,9 @@ export async function getSkills() {
       .depth(1)
 
     return response.objects || []
-  } catch (error) {
-    if (error.status === 404) {
+  } catch (error: unknown) {
+    const cosmicError = error as { status?: number }
+    if (cosmicError.status === 404) {
       return []
     }
     console.error('Error getting skills:', error)
@@ -187,8 +209,9 @@ export async function getIndustries() {
       .depth(1)
 
     return response.objects || []
-  } catch (error) {
-    if (error.status === 404) {
+  } catch (error: unknown) {
+    const cosmicError = error as { status?: number }
+    if (cosmicError.status === 404) {
       return []
     }
     console.error('Error getting industries:', error)

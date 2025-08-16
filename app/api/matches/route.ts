@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuth } from '@/lib/auth'
 import { getSalesExecutives, getSalesExecutiveByAuthId } from '@/lib/cosmic'
 import { calculateMatchScore } from '@/utils/matching'
+import { SalesExecutive } from '@/types'
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,16 +22,16 @@ export async function GET(request: NextRequest) {
     const allProfiles = await getSalesExecutives()
     
     // Filter out current user and inactive profiles
-    const potentialMatches = allProfiles.filter(profile => 
+    const potentialMatches = allProfiles.filter((profile: SalesExecutive) => 
       profile.id !== currentUserProfile.id && 
       profile.metadata?.account_status?.key === 'active'
     )
 
     // Calculate match scores and sort
-    const matchesWithScores = potentialMatches.map(profile => ({
+    const matchesWithScores = potentialMatches.map((profile: SalesExecutive) => ({
       ...profile,
       matchScore: calculateMatchScore(currentUserProfile, profile)
-    })).sort((a, b) => b.matchScore - a.matchScore)
+    })).sort((a: any, b: any) => b.matchScore - a.matchScore)
 
     // Return top matches
     const topMatches = matchesWithScores.slice(0, 20)

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuth } from '@/lib/auth'
-import { getSalesExecutiveByAuthId, cosmic } from '@/lib/cosmic'
+import { getSalesExecutiveByAuthId } from '@/lib/cosmic'
+import cosmic from '@/lib/cosmic'
 import { v4 as uuidv4 } from 'uuid'
 
 export async function POST(request: NextRequest) {

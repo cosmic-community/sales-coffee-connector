@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { CosmicAuth } from '@/lib/cosmic-auth'
 import { getSalesExecutiveByAuthId } from '@/lib/cosmic'
-import { cosmic } from '@/lib/cosmic'
+import cosmic from '@/lib/cosmic'
 import { validateProfileUpdate } from '@/utils/validation'
 
 export const dynamic = 'force-dynamic'
@@ -80,10 +80,11 @@ export async function PUT(request: NextRequest) {
       profile: updatedProfile.object
     }, { status: 200 })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const typedError = error as { message?: string }
     console.error('Update profile error:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to update profile' },
+      { error: typedError.message || 'Failed to update profile' },
       { status: 500 }
     )
   }
@@ -140,10 +141,11 @@ export async function POST(request: NextRequest) {
       profile: newProfile.object
     }, { status: 201 })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const typedError = error as { message?: string }
     console.error('Create profile error:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to create profile' },
+      { error: typedError.message || 'Failed to create profile' },
       { status: 500 }
     )
   }

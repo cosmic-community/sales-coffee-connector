@@ -44,8 +44,8 @@ export async function PUT(request: NextRequest) {
 
     // Transform form data to match Cosmic structure
     const updatedMetadata = {
-      company_name: body.company_name,
-      job_title: body.job_title,
+      company_name: body.company_name || '',
+      job_title: body.job_title || '',
       years_in_sales: body.years_in_sales,
       linkedin_url: body.linkedin_url || '',
       timezone: { key: body.timezone, value: getTimezoneLabel(body.timezone) },

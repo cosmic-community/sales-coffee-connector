@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuth } from '@/lib/auth'
-import { cosmic } from '@/lib/cosmic'
+import cosmic from '@/lib/cosmic'
 
 export async function GET(request: NextRequest) {
   try {
