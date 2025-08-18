@@ -85,12 +85,12 @@ export default function DiscussionTopicCard({ topic }: DiscussionTopicCardProps)
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(
                 typeof topic.metadata.difficulty_level === 'string' 
                   ? topic.metadata.difficulty_level 
-                  : topic.metadata.difficulty_level.key || topic.metadata.difficulty_level.value
+                  : topic.metadata.difficulty_level?.key || topic.metadata.difficulty_level?.value || 'beginner'
               )}`}>
                 <Target className="h-3 w-3 mr-1" />
                 {typeof topic.metadata.difficulty_level === 'string' 
                   ? topic.metadata.difficulty_level 
-                  : topic.metadata.difficulty_level.value || topic.metadata.difficulty_level.key}
+                  : topic.metadata.difficulty_level?.value || topic.metadata.difficulty_level?.key || 'Beginner'}
               </span>
             )}
             

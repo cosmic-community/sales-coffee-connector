@@ -26,6 +26,21 @@ export async function GET(request: NextRequest) {
   }
 }
 
+const validateCompanySize = (size: string): string => {
+  const validSizes = ['startup', 'smb', 'midmarket', 'enterprise']
+  return validSizes.includes(size) ? size : 'startup'
+}
+
+const validateTimezone = (timezone: string): string => {
+  const validTimezones = ['EST', 'CST', 'MST', 'PST', 'GMT', 'CET']
+  return validTimezones.includes(timezone) ? timezone : 'EST'
+}
+
+const validateMeetingsPerWeek = (meetings: string): string => {
+  const validMeetings = ['1', '2', '3', '4', '5']
+  return validMeetings.includes(meetings) ? meetings : '1'
+}
+
 export async function PUT(request: NextRequest) {
   try {
     const auth = await verifyAuth(request)
@@ -42,9 +57,17 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
     }
 
+    // Validate required fields with proper type safety
+    const companySize = validateCompanySize(body.company_size || 'startup')
+    const timezone = validateTimezone(body.timezone || 'EST')
+    const maxMeetings = validateMeetingsPerWeek(body.max_meetings_per_week || '1')
+
     // Update profile with new data
     const updatedProfile = await updateSalesExecutive(currentProfile.id, {
       ...body,
+      company_size: companySize,
+      timezone: timezone,
+      max_meetings_per_week: maxMeetings,
       profile_completed: true
     })
 

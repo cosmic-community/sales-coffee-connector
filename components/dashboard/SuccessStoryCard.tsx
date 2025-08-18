@@ -46,11 +46,11 @@ export default function SuccessStoryCard({ story }: SuccessStoryCardProps) {
               <div className="flex items-center">
                 <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center">
                   <span className="text-blue-600 font-medium text-xs">
-                    {getInitials(story.metadata.participant_1.title)}
+                    {getInitials(story.metadata.participant_1.title || 'Unknown')}
                   </span>
                 </div>
                 <span className="ml-1 text-sm text-gray-600">
-                  {story.metadata.participant_1.title}
+                  {story.metadata.participant_1.title || 'Anonymous'}
                 </span>
               </div>
             )}
@@ -61,11 +61,11 @@ export default function SuccessStoryCard({ story }: SuccessStoryCardProps) {
                 <div className="flex items-center">
                   <div className="h-6 w-6 rounded-full bg-green-100 flex items-center justify-center">
                     <span className="text-green-600 font-medium text-xs">
-                      {getInitials(story.metadata.participant_2.title)}
+                      {getInitials(story.metadata.participant_2.title || 'Unknown')}
                     </span>
                   </div>
                   <span className="ml-1 text-sm text-gray-600">
-                    {story.metadata.participant_2.title}
+                    {story.metadata.participant_2.title || 'Anonymous'}
                   </span>
                 </div>
               </>
