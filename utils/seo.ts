@@ -1,4 +1,4 @@
-import { Metadata, OpenGraph } from 'next'
+import { Metadata } from 'next'
 
 interface SEOConfig {
   title: string
@@ -33,8 +33,8 @@ export function generateSEOMetadata(config: SEOConfig): Metadata {
 
   const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`
 
-  // Construct Open Graph object
-  const openGraph: OpenGraph = {
+  // Construct Open Graph object - Fix: Use proper type from Next.js Metadata
+  const openGraph = {
     title: fullTitle,
     description,
     url,
@@ -46,7 +46,7 @@ export function generateSEOMetadata(config: SEOConfig): Metadata {
       alt: title
     })),
     type: type === 'website' || type === 'article' || type === 'profile' ? type : 'website'
-  }
+  } as const
 
   // Add article-specific fields if type is article
   if (type === 'article' && (publishedTime || modifiedTime || authors || section || tags)) {
